@@ -63,7 +63,15 @@ exports.register = async (req, res) => {
         // Send OTP email
         await sendOTP(email, otp); // Function to send OTP email
 
-        res.status(201).json({ message: 'User registered successfully', token, tokenPayload });
+        const response = {
+            message: 'User registered successfully',
+            token,
+            tokenPayload,
+            statusCode: 201,
+            otp
+        };
+
+        res.status(201).json({ response });
     } catch (error) {
         console.error('Error registering user:', error);
         res.status(500).json({ message: 'Failed to register user', error: error.message });
@@ -76,39 +84,38 @@ exports.login = async (req, res) => {
 
     try {
         const user = await User.findOne({ email });
+        console.log('login user',user);
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
+        // Validate password here
 
-        let token;
-        try {
-            token = jwt.sign(
-                {
-                    userId: user._id,
-                    email: user.email
-                },
-                process.env.JWT_SECRET,
-                { expiresIn: process.env.JWT_EXPIRATION }
-            );
-        } catch (error) {
-            return res.status(500).json({ message: 'Error! Something went wrong.' });
-        }
 
-        res.json({
-            success: true,
-            data: {
-                userId: user._id,
-                email: user.email,
-                token: token
-            }
-        });
+        // Assuming password validation is successful, generate a new token
+        const tokenPayload = {
+            email: user.email,
+            userId: user.userId,
+            tokens: []
+        };
+
+        console.log('login tokenPayload',tokenPayload);
+
+        const token = jwt.sign(
+            tokenPayload,
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRATION }
+        );
+
+        // Store token in user document and save
+        user.tokens.push(token);
+        await user.save();
+
+        res.status(200).json({ message: 'Login successful', token, tokenPayload });
     } catch (error) {
-        res.status(500).json({ message: 'Login failed' });
+        console.error('Error logging in user:', error);
+        res.status(500).json({ message: 'Failed to login user', error: error.message });
     }
 };
 

@@ -2,19 +2,17 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
-
 const User = require('../models/User');
 
 exports.enterAdditionalInfo = async (req, res) => {
     const { firstName, lastName, age, dateOfBirth, gender, bio } = req.body;
     const userId = req.userId;
-    console.log(userId,'kkkkkkkkkkkkkkkkkkkk');
+    console.log(userId, 'kkkkkkkkkkkkkkkkkkkk');
 
     try {
         // Find the user by ID
         const user = await User.findOne(userId);
-        console.log(user,'userdata');
+        console.log(user, 'userdata');
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -34,7 +32,7 @@ exports.enterAdditionalInfo = async (req, res) => {
     } catch (error) {
         console.error('Error saving additional information:', error);
         res.status(500).json({ message: 'Failed to save additional information', error: error.message });
-    } 
+    }
 };
 
 
@@ -61,7 +59,6 @@ exports.getAdditionalInfo = async (req, res) => {
 exports.getOppositeGenderUsers = async (req, res) => {
     try {
         const currentUser = req.user;
-        console.log(currentUser, 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
 
         // Get the opposite gender
         const oppositeGender = currentUser.gender === 'male' ? 'female' : 'male';

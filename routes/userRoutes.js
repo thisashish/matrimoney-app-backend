@@ -11,7 +11,7 @@ router.get('/:_id/additional-info', authenticateUser, userController.getAddition
 
 // router.get('/opposite-gender',authenticateUser, userController.getOppositeGenderUsers);
 
-router.get('/opposite-gender-users',authenticateUser, async (req, res) => {
+router.get('/opposite-gender-users', async (req, res) => {
     try {
         // Get the current user's gender from the authenticated user object
         const currentUser = req.query;

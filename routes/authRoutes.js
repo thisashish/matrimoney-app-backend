@@ -14,8 +14,8 @@ router.post('/verify-otp', authController.verifyOTP);
 // router.get('/profile', authMiddleware, authController.getUserProfile);
 // router.put('/profile', authMiddleware, authController.updateUserProfile);
 
-router.get('/user/:userId', async (req, res) => {
-    const { userId } = req.params; // Extract email from request parameters
+router.get('/user/:userId',authenticateUser, async (req, res) => {
+    const { userId } = req.params; 
 
     try {
         // Query the database to find the user by email
