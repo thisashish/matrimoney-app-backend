@@ -5,7 +5,6 @@ const userController = require('../controllers/usersController.js');
 
 const User = require('../models/User');
 
-
 router.post('/:userId/additional-info',authenticateUser, userController.enterAdditionalInfo);
 
 router.get('/:_id/additional-info', authenticateUser, userController.getAdditionalInfo);
@@ -16,8 +15,7 @@ router.get('/opposite-gender-users',authenticateUser, async (req, res) => {
     try {
         // Get the current user's gender from the authenticated user object
         const currentUser = req.query;
-        console.log('xxxxxxxxxxyyyyyyyyyyyyyyyyyyyy',currentUser);
-
+        
         // Determine the opposite gender
         const oppositeGender = currentUser.gender === 'male' ? 'female' : 'male';
 

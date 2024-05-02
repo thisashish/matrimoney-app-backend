@@ -4,7 +4,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const nodemailer = require('nodemailer');
-const crypto = require('crypto');
 
 
 exports.register = async (req, res) => {
@@ -45,15 +44,17 @@ exports.register = async (req, res) => {
         // Generate JWT token with email and user ID
         const tokenPayload = {
             email: email,
-            userId: newUser.userId
+            userId: newUser.userId,
+            tokens: []
         };
-        console.log("tokenPayload",tokenPayload);
+        console.log("tokenPayload", tokenPayload);
 
         const token = jwt.sign(
             tokenPayload,
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRATION }
         );
+        tokenPayload.tokens.push(token);
 
         // Update user document with the generated token
         newUser.tokens.push(token);
@@ -62,14 +63,12 @@ exports.register = async (req, res) => {
         // Send OTP email
         await sendOTP(email, otp); // Function to send OTP email
 
-        res.status(201).json({ message: 'User registered successfully', token,tokenPayload });
+        res.status(201).json({ message: 'User registered successfully', token, tokenPayload });
     } catch (error) {
         console.error('Error registering user:', error);
         res.status(500).json({ message: 'Failed to register user', error: error.message });
     }
 };
-
-
 
 
 exports.login = async (req, res) => {
@@ -94,24 +93,50 @@ exports.login = async (req, res) => {
                     email: user.email
                 },
                 process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRATION }
+                { expiresIn: process.env.JWT_EXPIRATION }
             );
         } catch (error) {
             return res.status(500).json({ message: 'Error! Something went wrong.' });
         }
 
-        res.json({ 
+        res.json({
             success: true,
             data: {
                 userId: user._id,
                 email: user.email,
-                token: token 
+                token: token
             }
         });
     } catch (error) {
         res.status(500).json({ message: 'Login failed' });
     }
 };
+
+
+exports.logout = async (req, res) => {
+    try {
+        // Retrieve the user model from the database using the userId
+        const user = await User.findOne({ userId: req.userData.userId });
+        console.log('User ID:', req.userData.userId);
+
+
+        // Set the tokens array to an empty array, indicating logout
+        user.tokens = [];
+
+        // Save the updated user document
+        await user.save();
+
+        res.json({ message: 'Logout successful' });
+    } catch (error) {
+        console.error('Error logging out:', error);
+        res.status(500).json({ message: 'Failed to logout', error: error.message });
+    }
+};
+
+
+
+
+
 
 
 async function sendOTP(email, otp) {
@@ -197,14 +222,6 @@ exports.verifyOTP = async (req, res) => {
         res.status(500).json({ message: 'Failed to verify OTP', error: error.message });
     }
 };
-
-
-
-
-
-
-
-
 
 
 function generateOTP() {
