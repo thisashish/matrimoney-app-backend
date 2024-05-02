@@ -64,11 +64,12 @@ exports.register = async (req, res) => {
         await sendOTP(email, otp); // Function to send OTP email
 
         const response = {
+            statusCode: 201,
+            otp,
             message: 'User registered successfully',
             token,
             tokenPayload,
-            statusCode: 201,
-            otp
+            
         };
 
         res.status(201).json({ response });
@@ -84,14 +85,18 @@ exports.login = async (req, res) => {
 
     try {
         const user = await User.findOne({ email });
-        console.log('login user',user);
+        console.log('login user', user);
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Validate password here
+        // Validate password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
 
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid password' });
+        }
 
         // Assuming password validation is successful, generate a new token
         const tokenPayload = {
@@ -100,7 +105,7 @@ exports.login = async (req, res) => {
             tokens: []
         };
 
-        console.log('login tokenPayload',tokenPayload);
+        console.log('login tokenPayload', tokenPayload);
 
         const token = jwt.sign(
             tokenPayload,
@@ -108,8 +113,8 @@ exports.login = async (req, res) => {
             { expiresIn: process.env.JWT_EXPIRATION }
         );
 
-        // Store token in user document and save
-        user.tokens.push(token);
+        // Remove previous tokens and store the new token in user document
+        user.tokens = [token];
         await user.save();
 
         res.status(200).json({ message: 'Login successful', token, tokenPayload });
@@ -118,6 +123,7 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Failed to login user', error: error.message });
     }
 };
+
 
 
 exports.logout = async (req, res) => {
