@@ -69,7 +69,7 @@ exports.register = async (req, res) => {
             message: 'User registered successfully',
             token,
             tokenPayload,
-            
+
         };
 
         res.status(201).json({ response });
@@ -202,8 +202,10 @@ exports.sendOTP = async (req, res) => {
 exports.verifyOTP = async (req, res) => {
     const { otp } = req.body;
 
+
     try {
-        const user = await User.findOne({ otp }); 
+        const user = await User.findOne({ otp });
+
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });

@@ -8,7 +8,7 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/logout', authenticateUser, authController.logout);
 router.post('/send-otp', authController.sendOTP);
-router.post('/verify-otp',authenticateUser, authController.verifyOTP);
+router.post('/verify-otp', authController.verifyOTP);
 
 
 // router.get('/profile', authMiddleware, authController.getUserProfile);
