@@ -200,10 +200,11 @@ exports.sendOTP = async (req, res) => {
 
 
 exports.verifyOTP = async (req, res) => {
-    const { email, phone, otp } = req.body;
+    const { otp } = req.body;
 
     try {
-        const user = await User.findOne({ $or: [{ email }, { phone }] });
+        const user = await User.findOne({ otp }); 
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -235,6 +236,7 @@ exports.verifyOTP = async (req, res) => {
         res.status(500).json({ message: 'Failed to verify OTP', error: error.message });
     }
 };
+
 
 
 function generateOTP() {
