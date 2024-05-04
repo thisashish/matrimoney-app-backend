@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const nodemailer = require('nodemailer');
+const Admin = require('../models/Admin');
 
 
 exports.register = async (req, res) => {
@@ -146,6 +147,68 @@ exports.logout = async (req, res) => {
     }
 };
 
+exports.superAdminLogin = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        // Find the super admin with the provided email
+        const superAdmin = await Admin.findOne({ email });
+
+        if (!superAdmin) {
+            return res.status(404).json({ message: 'Super admin not found' });
+        }
+
+        // Validate password
+        const isPasswordValid = await bcrypt.compare(password, superAdmin.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid password' });
+        }
+
+        // Assuming password validation is successful, generate a new token
+        const tokenPayload = {
+            email: superAdmin.email,
+            adminId: superAdmin._id, // Assuming Admin model has _id field as the unique identifier
+            userType: 'superAdmin', // Optionally, you can add userType to distinguish between super admin and regular users
+            tokens: []
+        };
+
+        const token = jwt.sign(
+            tokenPayload,
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRATION }
+        );
+
+        // Remove previous tokens and store the new token in admin document
+        superAdmin.token = token;
+        await superAdmin.save();
+
+        res.status(200).json({ message: 'Super admin login successful', token, tokenPayload });
+    } catch (error) {
+        console.error('Error logging in super admin:', error);
+        res.status(500).json({ message: 'Failed to login super admin', error: error.message });
+    }
+};
+
+
+
+
+// Controller function for super admin logout
+exports.superAdminLogout = async (req, res) => {
+    try {
+        
+        req.admin.token = null;
+        await req.admin.save();
+
+        res.status(200).json({ message: 'Super admin logout successful' });
+    } catch (error) {
+        console.error('Error logging out super admin:', error);
+        res.status(500).json({ message: 'Failed to logout super admin', error: error.message });
+    }
+};
+
+
+
 
 
 
@@ -202,18 +265,16 @@ exports.sendOTP = async (req, res) => {
 exports.verifyOTP = async (req, res) => {
     const { otp } = req.body;
 
-
     try {
         const user = await User.findOne({ otp });
 
-
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ statusCode: 404, message: 'User not found' });
         }
 
         // Check if user has an OTP stored
         if (!user.otp) {
-            return res.status(400).json({ message: 'No OTP found for the user' });
+            return res.status(400).json({ statusCode: 400, message: 'No OTP found for the user' });
         }
 
         // Convert stored OTP and provided OTP to strings for comparison
@@ -221,7 +282,7 @@ exports.verifyOTP = async (req, res) => {
         const providedOTP = otp.toString();
 
         if (storedOTP !== providedOTP) {
-            return res.status(400).json({ message: 'Invalid OTP' });
+            return res.status(400).json({ statusCode: 400, message: 'Invalid OTP' });
         }
 
         // Mark OTP as verified
@@ -232,12 +293,13 @@ exports.verifyOTP = async (req, res) => {
 
         await user.save();
 
-        res.status(200).json({ message: 'OTP verified successfully' });
+        res.status(200).json({ statusCode: 200, message: 'OTP verified successfully' });
     } catch (error) {
         console.error('Error verifying OTP:', error);
-        res.status(500).json({ message: 'Failed to verify OTP', error: error.message });
+        res.status(500).json({ statusCode: 500, message: 'Failed to verify OTP', error: error.message });
     }
 };
+
 
 
 
@@ -253,4 +315,6 @@ function generateOTP() {
 
     return OTP;
 }
+
+
 
