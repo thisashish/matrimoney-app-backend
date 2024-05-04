@@ -10,11 +10,8 @@ const seedSuperAdmin = async () => {
             return;
         }
 
-        console.log(existingSuperAdmin,"existingSuperAdmin");
-
-
         // If super admin doesn't exist, create a new one
-        const password = 'Admin@1234'; 
+        const password = 'Admin@1234';
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newSuperAdmin = new Admin({
@@ -29,4 +26,5 @@ const seedSuperAdmin = async () => {
     }
 };
 
-module.exports = seedSuperAdmin;
+// Call the seed function when your application starts or initializes
+seedSuperAdmin();
