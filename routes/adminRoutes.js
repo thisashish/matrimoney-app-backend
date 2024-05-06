@@ -10,7 +10,11 @@ const jwt = require('jsonwebtoken');
 const isAdmin = require('../middleware/isAdmin');
 const { validationResult } = require('express-validator');
 const { superAdminLogout } = require('../controllers/authController');
-const  authenticateSuperAdmin  = require('../middleware/adminLogout'); 
+const authenticateSuperAdmin = require('../middleware/adminLogout');
+const authenticateAdmin = require('../middleware/adminAuth');
+
+
+const adminsController = require('../controllers/adminsController');
 
 
 // Admin login route
@@ -46,17 +50,17 @@ router.post('/super-admin-login', async (req, res) => {
         admin.tokens = [token];
         await admin.save();
 
-        res.status(200).json({ message: 'Admin login successful', token, tokenPayload });
+        res.status(200).json({ message: 'Admin login successful',token, tokenPayload });
     } catch (error) {
         console.error('Error logging in admin:', error);
         res.status(500).json({ message: 'Failed to login admin', error: error.message });
     }
 });
 
-router.post('/create-super-admin',isAdmin, async (req, res) => {
+router.post('/create-super-admin', isAdmin, async (req, res) => {
     try {
         // Check if super admin already exists
-        const existingSuperAdmin = await Admin.findOne({ email: 'ashish.vishwakarma1267@gmail.com' });
+        const existingSuperAdmin = await Admin.findOne({ email: 'av556548@gmail.com' });
         if (existingSuperAdmin) {
             console.log('Super admin already exists');
             return res.status(400).json({ message: 'Super admin already exists' });
@@ -67,7 +71,7 @@ router.post('/create-super-admin',isAdmin, async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newSuperAdmin = new Admin({
-            email: 'ashish.vishwakarma1267@gmail.com',
+            email: 'av556548@gmail.com',
             password: hashedPassword,
             role: 'admin'
         });
@@ -96,7 +100,7 @@ router.post('/create-super-admin',isAdmin, async (req, res) => {
 });
 
 
-router.put('/super-admin-update-email/:id',isAdmin, async (req, res) => {
+router.put('/super-admin-update-email/:id', isAdmin, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -124,7 +128,13 @@ router.put('/super-admin-update-email/:id',isAdmin, async (req, res) => {
     }
 });
 
-router.post('/super-admin-logout',authenticateSuperAdmin, superAdminLogout);
+router.post('/super-admin-logout', authenticateSuperAdmin, superAdminLogout);
+
+// Admin route to get all female users
+router.get('/female-users',authenticateAdmin, adminsController.getAllFemaleUsers);
+
+// Admin route to get all male users
+router.get('/male-users',authenticateAdmin, adminsController.getAllMaleUsers);
 
 
 

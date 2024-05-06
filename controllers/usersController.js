@@ -3,16 +3,20 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const User = require('../models/User');
+const express = require('express');
+const router = express.Router();
+
+
 
 exports.enterAdditionalInfo = async (req, res) => {
     const { firstName, lastName, age, dateOfBirth, gender, bio } = req.body;
-    const userId = req.userId;
-    console.log(userId, 'kkkkkkkkkkkkkkkkkkkk');
+    const userId = req.userData.userId;
+
 
     try {
         // Find the user by ID
-        const user = await User.findOne(userId);
-        console.log(user, 'userdata');
+        const user = await User.findOne({ userId });
+
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -37,7 +41,8 @@ exports.enterAdditionalInfo = async (req, res) => {
 
 
 exports.getAdditionalInfo = async (req, res) => {
-    const userId = req.params._id;
+    const userId = req.userData.userId;
+    console.log(userId, 'userId usersController');
 
     try {
         // Find the user by ID
@@ -55,21 +60,32 @@ exports.getAdditionalInfo = async (req, res) => {
 };
 
 
-
 exports.getOppositeGenderUsers = async (req, res) => {
+    const userId = req.userData.userId;
+    console.log(userId, 'userid');
+
     try {
-        const currentUser = req.user;
+        // Find the user by ID
+        const user = await User.findOne({ userId });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 
-        // Get the opposite gender
-        const oppositeGender = currentUser.gender === 'male' ? 'female' : 'male';
+        // Find users with opposite gender
+        const oppositeGenderUsers = await User.find({ gender: { $ne: user.gender } });
 
-        // Query the database for users of the opposite gender
-        const oppositeGenderUsers = await User.find({ gender: oppositeGender });
-
+        // Return opposite gender users
         res.status(200).json({ oppositeGenderUsers });
     } catch (error) {
-        console.error('Error fetching opposite gender users:', error);
-        res.status(500).json({ message: 'Failed to fetch opposite gender users' });
+        console.error('Error retrieving opposite gender users:', error);
+        res.status(500).json({ message: 'Failed to retrieve opposite gender users', error: error.message });
     }
 };
+
+
+
+
+
+
+
 

@@ -46,7 +46,8 @@ exports.register = async (req, res) => {
         const tokenPayload = {
             email: email,
             userId: newUser.userId,
-            tokens: []
+            tokens: [],
+            
         };
         console.log("tokenPayload", tokenPayload);
 

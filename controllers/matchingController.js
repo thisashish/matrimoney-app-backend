@@ -1,4 +1,3 @@
-const { json } = require('body-parser');
 const User = require('../models/User');
 
 const getPotentialMatches = async (userId) => {

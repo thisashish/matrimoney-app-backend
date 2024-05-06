@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
-// Define the schema for a single photo
+
 const PhotoSchema = new mongoose.Schema({
   filename: String,
   originalname: String,
@@ -9,9 +10,10 @@ const PhotoSchema = new mongoose.Schema({
   size: Number
 });
 
-// Define the user schema
+
+
 const UserSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() }, // Modified default value assignment
+  userId: { type: String, unique: true },
   firstName: String,
   lastName: String,
   email: {
@@ -23,7 +25,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
-},
+  },
   phone: Number,
   password: {
     type: String,
@@ -46,7 +48,7 @@ const UserSchema = new mongoose.Schema({
     enum: ['male', 'female']
   },
   dateOfBirth: Date,
-  // bio: String,
+
   preferences: {
     ageRange: {
       min: Number,
@@ -63,6 +65,7 @@ const UserSchema = new mongoose.Schema({
     default: false
   },
   photos: [PhotoSchema],
+  profileVisitors: [{ type: String, ref: 'User' }],
   bio: {
     type: String,
   },
@@ -104,18 +107,37 @@ const UserSchema = new mongoose.Schema({
   tokens: [{ type: String }]
 });
 
-// Hash password and confirm_password before saving to database
+
+
 UserSchema.pre('save', async function (next) {
   const user = this;
-  if (!user.isModified('password') && !user.isModified('confirm_password')) return next();
-  
-  const salt = await bcrypt.genSalt(10);
-  const passwordHash = await bcrypt.hash(user.password, salt);
-  const confirmHash = await bcrypt.hash(user.confirm_password, salt);
-  user.password = passwordHash;
-  user.confirm_password = confirmHash;
-  next();
+  if (!user.isModified('password') && !user.isModified('confirm_password') && !user.isModified('firstName') && !user.isModified('lastName') && !user.isModified('email')) return next();
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(user.password, salt);
+    const confirmHash = await bcrypt.hash(user.confirm_password, salt);
+    user.password = passwordHash;
+    user.confirm_password = confirmHash;
+
+    // Generate unique userId based on email
+    const userId = generateUniqueId(user.email);
+    user.userId = userId;
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
+
+// Function to generate unique ID using email
+function generateUniqueId(email) {
+  const hash = crypto.createHash('sha256').update(email).digest('hex');
+  return hash.substring(0, 8);
+}
+
+
+
 
 const User = mongoose.model('User', UserSchema);
 

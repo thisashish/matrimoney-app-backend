@@ -2,19 +2,16 @@ const User = require('../models/User');
 const mongoose = require('mongoose');
 
 exports.uploadPhotos = async (req, res) => {
-    const userId = req.params._id;
-    const photos = req.files;
-
     try {
+        // Extract userId from userData attached by the authentication middleware
+        const userId = req.userData.userId; 
+        const photos = req.files;
+
         console.log('Uploaded files:', photos); // Log uploaded files for debugging
 
-        // Check if the user ID is a valid MongoDB ObjectID
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ message: 'Invalid user ID' });
-        }
-
         // Find the user by ID
-        const user = await User.findById(userId);
+        const user = await User.findOne({userId});
+        console.log(user,'user');
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -29,7 +26,8 @@ exports.uploadPhotos = async (req, res) => {
             filename: photo.filename,
             originalname: photo.originalname,
             mimetype: photo.mimetype,
-            size: photo.size
+            size: photo.size,
+            
         }));
 
         user.photos.push(...uploadedPhotos);
