@@ -10,6 +10,7 @@ const authenticateSuperAdmin = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const superAdmin = await Admin.findById(decoded.adminId);
+        console.log(superAdmin,'superAdmin');
         if (!superAdmin) {
             return res.status(404).json({ message: 'Super admin not found' });
         }

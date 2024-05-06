@@ -1,4 +1,70 @@
 const User = require('../models/User');
+const mongoose = require('mongoose');
+
+
+exports.getProfileVisitors = async (req, res) => {
+    const userId = req.params.userId; // ID of the user whose profile visitors are being requested
+
+    try {
+        // Find the user
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Retrieve profile visitors' information
+        const profileVisitors = await User.find({ _id: { $in: user.profileVisitors } });
+
+        res.status(200).json({ profileVisitors });
+    } catch (error) {
+        console.error('Error fetching profile visitors:', error);
+        res.status(500).json({ message: 'Failed to fetch profile visitors', error: error.message });
+    }
+};
+
+
+
+
+exports.updateProfileVisitors = async (req, res, next) => {
+    const profileOwnerId = req.params.userId; // ID of the user whose profile is being visited
+    const visitorId = req.userData.userId; // ID of the user visiting the profile
+
+    try {
+        // Find the profile owner by userId
+        const profileOwner = await User.findOne({ userId: profileOwnerId });
+        
+        if (!profileOwner) {
+            return res.status(404).json({ message: 'Profile owner not found' });
+        }
+        
+        // Check if the visitor's ID is already in the profileVisitors array
+        if (!profileOwner.profileVisitors.includes(visitorId)) {
+            // Push visitorId to profileVisitors array
+            profileOwner.profileVisitors.push(visitorId);
+            await profileOwner.save();
+        }
+
+        next(); // Proceed to the route handler
+    } catch (error) {
+        console.error('Error updating profile visitors:', error);
+        res.status(500).json({ message: 'Failed to update profile visitors', error: error.message });
+    }
+};
+
+// exports.getUsers = async (userId) => {
+//     try {
+//         const user = await User.findOne({ userId: userId }).populate('profileVisitors');
+//         console.log("user profileController",user);
+//         return user;
+//     } catch (error) {
+//         throw new Error(`Failed to find user: ${error.message}`);
+//     }
+// };
+
+
+
+
+
 
 
 
@@ -36,3 +102,4 @@ exports.updateProfile = async (req, res) => {
         res.status(500).json({ message: 'Failed to update profile', error: error.message });
     }
 };
+
