@@ -24,11 +24,11 @@ router.get('/user-initial-info', authenticateUser, async (req, res) => {
         const user = await User.findOne(userId);
 
         // If user is not found or token is empty, return a 404 Not Found response
-        if (!user || !user.tokens.token) {
+        if (!user || !user.tokens) {
             return res.status(404).json({ message: 'User not found or token is empty' });
         }
 
-        // If user is found and token is not empty, return the user data as a response
+       
         res.status(200).json(user);
     } catch (error) {
         // If an error occurs, return a 500 Internal Server Error response
