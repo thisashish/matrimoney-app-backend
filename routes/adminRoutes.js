@@ -34,23 +34,25 @@ router.post('/super-admin-login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid password' });
         }
 
+        // Generate token payload
         const tokenPayload = {
             email: admin.email,
             adminId: admin._id,
-            userType: 'admin',
-            token: admin.token
+            userType: 'admin'
         };
 
+        // Generate token
         const token = jwt.sign(
             tokenPayload,
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRATION }
         );
 
-        admin.tokens = [token];
+        // Update admin document with new token
+        admin.token = token;
         await admin.save();
 
-        res.status(200).json({ message: 'Admin login successful',token, tokenPayload });
+        res.status(200).json({ message: 'Admin login successful', token });
     } catch (error) {
         console.error('Error logging in admin:', error);
         res.status(500).json({ message: 'Failed to login admin', error: error.message });
@@ -87,8 +89,8 @@ router.post('/create-super-admin', isAdmin, async (req, res) => {
         };
         const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION });
 
-        // Save the token to the database
-        newSuperAdmin.token = token;
+        // Attach the generated token to the admin document
+        newSuperAdmin.tokens = [token];
         await newSuperAdmin.save();
 
         console.log('Super admin seeded successfully');
@@ -98,6 +100,8 @@ router.post('/create-super-admin', isAdmin, async (req, res) => {
         res.status(500).json({ message: 'Failed to seed super admin', error: error.message });
     }
 });
+
+
 
 
 router.put('/super-admin-update-email/:id', isAdmin, async (req, res) => {
@@ -130,11 +134,15 @@ router.put('/super-admin-update-email/:id', isAdmin, async (req, res) => {
 
 router.post('/super-admin-logout', authenticateSuperAdmin, superAdminLogout);
 
+
 // Admin route to get all female users
-router.get('/female-users',authenticateAdmin, adminsController.getAllFemaleUsers);
+router.get('/female-users', authenticateAdmin, adminsController.getAllFemaleUsers);
 
 // Admin route to get all male users
-router.get('/male-users',authenticateAdmin, adminsController.getAllMaleUsers);
+router.get('/male-users', authenticateAdmin, adminsController.getAllMaleUsers);
+
+
+
 
 
 

@@ -1,3 +1,5 @@
+// controllers/adminsController.js
+
 const User = require('../models/User');
 
 exports.getAllFemaleUsers = async (req, res) => {
@@ -21,7 +23,7 @@ exports.getAllMaleUsers = async (req, res) => {
     try {
         // Check if the user making the request is an admin
         if (!req.admin) {
-            return res.status(403).json({ success: false, message: "I am not authorized as admin." });
+            return res.status(403).json({ success: false, message: "User is not authorized as admin." });
         }
 
         // Find all male users
