@@ -36,7 +36,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: function (value) {
-        // Ensure the confirm_password matches the password
+        
         return value === this.password;
       },
       message: 'Password and confirm password do not match'
@@ -45,7 +45,7 @@ const UserSchema = new mongoose.Schema({
   age: Number,
   gender: {
     type: String,
-    enum: ['male', 'female']
+    enum: ['Male', 'Female']
   },
   dateOfBirth: Date,
 
