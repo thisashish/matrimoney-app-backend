@@ -1,5 +1,4 @@
 const User = require('../models/User');
-const mongoose = require('mongoose');
 
 
 exports.getProfileVisitors = async (req, res) => {
@@ -7,14 +6,15 @@ exports.getProfileVisitors = async (req, res) => {
 
     try {
         // Find the user
-        const user = await User.findById(userId);
+        const user = await User.findOne({ userId });
+       
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-
-        // Retrieve profile visitors' information
-        const profileVisitors = await User.find({ _id: { $in: user.profileVisitors } });
-
+        
+        // Retrieve profile visitors' information using their userIds
+        const profileVisitors = await User.find({ userId: { $in: user.profileVisitors } });
+console.log("profileVisitors",profileVisitors);
         res.status(200).json({ profileVisitors });
     } catch (error) {
         console.error('Error fetching profile visitors:', error);
@@ -32,11 +32,12 @@ exports.updateProfileVisitors = async (req, res, next) => {
     try {
         // Find the profile owner by userId
         const profileOwner = await User.findOne({ userId: profileOwnerId });
-        
+        console.log(profileOwner,"profileOwner");
+
         if (!profileOwner) {
             return res.status(404).json({ message: 'Profile owner not found' });
         }
-        
+
         // Check if the visitor's ID is already in the profileVisitors array
         if (!profileOwner.profileVisitors.includes(visitorId)) {
             // Push visitorId to profileVisitors array
@@ -71,7 +72,7 @@ exports.updateProfileVisitors = async (req, res, next) => {
 exports.updateProfile = async (req, res) => {
     try {
         const userId = req.params._id;
-        const { bio,maritalStatus, religion, motherTongue, community, settleDown, homeTown, highestQualification, college, jobTitle, companyName, salary } = req.body;
+        const { bio, maritalStatus, religion, motherTongue, community, settleDown, homeTown, highestQualification, college, jobTitle, companyName, salary } = req.body;
 
         // Find the user by ID
         const user = await User.findById(userId);
@@ -92,7 +93,7 @@ exports.updateProfile = async (req, res) => {
         user.jobTitle = jobTitle;
         user.companyName = companyName;
         user.salary = salary;
-        
+
         // Save updated user profile
         await user.save();
 
