@@ -46,7 +46,7 @@ exports.getAdditionalInfo = async (req, res) => {
 
     try {
         // Find the user by ID
-        const user = await User.findById(userId);
+        const user = await User.findOne({userId});
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
