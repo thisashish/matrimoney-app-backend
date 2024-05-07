@@ -34,7 +34,7 @@ router.post('/super-admin-login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid password' });
         }
 
-        // Generate token payload
+        
         const tokenPayload = {
             email: admin.email,
             adminId: admin._id,
