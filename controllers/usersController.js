@@ -9,7 +9,7 @@ const router = express.Router();
 
 
 exports.enterAdditionalInfo = async (req, res) => {
-    const { firstName, lastName, age, dateOfBirth, gender, bio } = req.body;
+    const { firstName, lastName, age, dateOfBirth } = req.body;
     const userId = req.userData.userId;
 
 
