@@ -95,6 +95,7 @@ exports.login = async (req, res) => {
 
         // Validate password
         const isPasswordValid = await bcrypt.compare(password, user.password);
+        console.log(isPasswordValid,'isPasswordValid');
 
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Invalid password' });
@@ -104,7 +105,7 @@ exports.login = async (req, res) => {
         const tokenPayload = {
             email: user.email,
             userId: user.userId,
-            tokens: user.tokens
+           
         };
 
         console.log('login tokenPayload', tokenPayload);
@@ -119,6 +120,7 @@ exports.login = async (req, res) => {
         user.tokens = token;
         await user.save();
 
+        // res.cookie('token', token, { httpOnly: true });
         res.status(200).json({ message: 'Login successful', token, tokenPayload });
     } catch (error) {
         console.error('Error logging in user:', error);
