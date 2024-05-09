@@ -1,4 +1,4 @@
-const Admin = require('../models/Admin');
+const SuperAdmin = require('../models/superAdmin');
 const jwt = require('jsonwebtoken');
 
 const authenticateSuperAdmin = async (req, res, next) => {
@@ -9,7 +9,7 @@ const authenticateSuperAdmin = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const superAdmin = await Admin.findById(decoded.adminId);
+        const superAdmin = await SuperAdmin.findById(decoded.adminId);
         console.log(superAdmin,'superAdmin');
         if (!superAdmin) {
             return res.status(404).json({ message: 'Super admin not found' });

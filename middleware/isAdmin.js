@@ -1,9 +1,10 @@
-const Admin = require('../models/Admin');
+const SuperAdmin = require('../models/superAdmin');
+
 
 const isAdmin = async (req, res, next) => {
     try {
         // Check if any users exist in the database
-        const userCount = await Admin.countDocuments();
+        const userCount = await SuperAdmin.countDocuments();
 
         // If no users exist, allow access to create-super-admin route
         if (userCount === 0) {
@@ -11,7 +12,7 @@ const isAdmin = async (req, res, next) => {
         }
 
         // Check if user information is available and if the user is an admin
-        if (req.user && req.user.role === 'admin') {
+        if (req.user && req.user.role === 'super-admin') {
             return next();
         } else {
             return res.status(403).json({ message: 'Unauthorized' });
