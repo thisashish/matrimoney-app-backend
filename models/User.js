@@ -131,7 +131,7 @@ UserSchema.pre('save', async function (next) {
   }
 });
 
-// Function to generate unique ID using email
+
 function generateUniqueId(email) {
   const hash = crypto.createHash('sha256').update(email).digest('hex');
   return hash.substring(0, 8);
