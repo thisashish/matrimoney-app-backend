@@ -61,7 +61,7 @@ router.get('/:userId', authenticateUser, updateProfileVisitors, async (req, res)
         const user = await User.find({userId} );
         console.log("user",user);
 
-        // Send the user data as a response
+        
         res.status(200).json({ user });
     } catch (error) {
         console.error('Error fetching user profile:', error);
