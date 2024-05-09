@@ -76,11 +76,11 @@ const UserSchema = new mongoose.Schema({
   },
   religion: {
     type: String,
-    // enum: ['Hindu', 'Muslim', 'Christian', 'Sikh', 'Buddhist', 'Jain', 'Parsis', 'Others'],
+    
   },
   motherTongue: {
     type: String,
-    // enum: ['Hindi', 'Marathi', 'Bangali', 'Telugu', 'Tamil', 'Kannada'],
+    
   },
   community: {
     type: String,
