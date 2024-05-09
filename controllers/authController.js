@@ -64,7 +64,7 @@ exports.register = async (req, res) => {
         await newUser.save();
 
         // Send OTP email
-        await sendOTP(email, otp); // Function to send OTP email
+        await sendOTP(email, otp); 
 
         const response = {
             statusCode: 201,
