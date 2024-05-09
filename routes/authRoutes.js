@@ -32,7 +32,7 @@ router.get('/user-initial-info', authenticateUser, async (req, res) => {
        
         res.status(200).json(user);
     } catch (error) {
-        // If an error occurs, return a 500 Internal Server Error response
+       
         console.error('Error retrieving user data:', error);
         res.status(500).json({ message: 'Failed to retrieve user data', error: error.message });
     }
