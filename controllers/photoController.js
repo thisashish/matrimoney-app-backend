@@ -16,6 +16,16 @@ exports.uploadPhotos = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        // Check if at least one photo is uploaded
+        if (!photos || photos.length === 0) {
+            return res.status(400).json({ message: 'At least one photo is required' });
+        }
+
+        // Check if the number of uploaded photos exceeds the maximum limit
+        if (photos.length > 6) {
+            return res.status(400).json({ message: 'Maximum 6 photos can be uploaded' });
+        }
+
         // Initialize photos array if it's undefined
         if (!user.photos) {
             user.photos = [];
@@ -27,7 +37,6 @@ exports.uploadPhotos = async (req, res) => {
             originalname: photo.originalname,
             mimetype: photo.mimetype,
             size: photo.size,
-            
         }));
 
         user.photos.push(...uploadedPhotos);
@@ -39,3 +48,4 @@ exports.uploadPhotos = async (req, res) => {
         res.status(500).json({ message: 'Failed to upload photos', error: error.message });
     }
 };
+

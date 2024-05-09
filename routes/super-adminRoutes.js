@@ -138,7 +138,7 @@ router.post('/super-admin-logout', authenticateSuperAdmin, superAdminLogout);
 
 
 // Admin route to get all female users
-router.get('/female-users', authenticateAdmin, adminsController.getAllFemaleUsers);
+router.get('/users-by-gender', authenticateAdmin, adminsController.getUsersByGender);
 
 // Admin route to get all male users
 router.get('/male-users', authenticateAdmin, adminsController.getAllMaleUsers);
