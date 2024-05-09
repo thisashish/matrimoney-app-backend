@@ -1,36 +1,35 @@
+// superAdminAuthMiddleware.js
+
 const jwt = require('jsonwebtoken');
 const SuperAdmin = require('../models/superAdmin');
 
-const authenticateAdmin = async (req, res, next) => {
+const superAdminAuthMiddleware = async (req, res, next) => {
     try {
         const authorizationHeader = req.headers.authorization;
-        console.log("authorizationHeader",authorizationHeader);
         if (!authorizationHeader) {
             return res.status(401).json({ success: false, message: "Error! Token was not provided." });
         }
-        
+
         const token = authorizationHeader.split(' ')[1];
-        console.log('token',token);
         if (!token) {
             return res.status(401).json({ success: false, message: "Error! Token was not provided." });
         }
 
-        const decodedToken = jwt.verify(token, "secretkeyappearshere");
-        console.log(decodedToken,'decoded token')
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("decodedToken ke papa",decodedToken);
         
-        // Check if the user is an admin
-        const admin = await SuperAdmin.findById(decodedToken.adminId);
-        console.log(admin,'super-admin');
-
-        if (!admin) {
-            return res.status(403).json({ success: false, message: "User is not authorized as super admin." });
+        // Check if the user is a super admin
+        const superAdmin = await SuperAdmin.findById(decodedToken.adminId);
+        console.log("super admin ke papa", superAdmin);
+        if (!superAdmin) {
+            return res.status(403).json({ success: false, message: "User is not authorized as a super admin." });
         }
 
-        // Attach admin data to request for further processing
-        req.admin = admin;
+        // Attach super admin data to request for further processing
+        req.superAdmin = superAdmin;
         next(); // Call next middleware
     } catch (error) {
-        console.error('Error verifying admin token:', error);
+        console.error('Error verifying super admin token:', error);
         if (error.name === 'JsonWebTokenError') {
             return res.status(401).json({ success: false, message: "Invalid token" });
         }
@@ -38,4 +37,4 @@ const authenticateAdmin = async (req, res, next) => {
     }
 };
 
-module.exports = authenticateAdmin;
+module.exports = superAdminAuthMiddleware;

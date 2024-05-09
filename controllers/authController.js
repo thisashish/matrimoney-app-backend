@@ -47,9 +47,10 @@ exports.register = async (req, res) => {
             email: email,
             userId: newUser.userId,
             tokens: [],
-            
+            _id: newUser._id
+
         };
-        console.log("tokenPayload", tokenPayload);
+
 
         const token = jwt.sign(
             tokenPayload,
@@ -63,7 +64,7 @@ exports.register = async (req, res) => {
         await newUser.save();
 
         // Send OTP email
-        await sendOTP(email, otp); // Function to send OTP email
+        await sendOTP(email, otp); 
 
         const response = {
             statusCode: 201,
@@ -92,11 +93,11 @@ exports.login = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-console.log(password,'password');
-console.log(user.password,'user password');
+        console.log(password, 'password');
+        console.log(user.password, 'user password');
         // Validate password
         const isPasswordValid = await bcrypt.compare(password, user.password);
-        console.log(isPasswordValid,'isPasswordValid');
+        console.log(isPasswordValid, 'isPasswordValid');
 
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Invalid password' });
@@ -106,7 +107,7 @@ console.log(user.password,'user password');
         const tokenPayload = {
             email: user.email,
             userId: user.userId,
-           
+
         };
 
         console.log('login tokenPayload', tokenPayload);
@@ -200,7 +201,7 @@ exports.superAdminLogin = async (req, res) => {
 // Controller function for super admin logout
 exports.superAdminLogout = async (req, res) => {
     try {
-        
+
         req.admin.token = null;
         await req.admin.save();
 

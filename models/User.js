@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin'],
+    enum: ['user', 'admin','super-admin'],
     default: 'user'
   },
   phone: Number,
@@ -36,7 +36,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: function (value) {
-        // Ensure the confirm_password matches the password
+        
         return value === this.password;
       },
       message: 'Password and confirm password do not match'
@@ -44,8 +44,9 @@ const UserSchema = new mongoose.Schema({
   },
   age: Number,
   gender: {
+
     type: String,
-    enum: ['Male', 'Female']
+    // enum: ['Male', 'Female']
   },
   dateOfBirth: Date,
 

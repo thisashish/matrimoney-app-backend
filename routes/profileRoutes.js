@@ -8,7 +8,7 @@ const profileController = require('../controllers/profileController.js')
 const User = require('../models/User');
 
 // router.post('/create-profile', profileController.createProfile);
-router.put('/:_id/update-profile', profileController.updateProfile);
+router.post('/:_id/update-profile', profileController.updateProfile);
 
 // Route to fetch profile visitors
 router.get('/:userId/profile-visitors', authenticateUser,getProfileVisitors, async (req, res) => {

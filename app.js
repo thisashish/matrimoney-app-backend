@@ -13,7 +13,7 @@ const photoRoutes = require('./routes/photoRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const matchingRoutes = require('./routes/matchingRoutes');
 const chatRoutes = require('./routes/chatRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+const superadminRoutes = require('./routes/super-adminRoutes');
 
 
 require('dotenv').config();
@@ -44,7 +44,7 @@ app.use('/api/photos', photoRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/matching', matchingRoutes);
 app.use('/api/chat', chatRoutes);
-app.use('/admin', adminRoutes);
+app.use('/super-admin', superadminRoutes);
 
 
 // Serve uploaded photos statically
