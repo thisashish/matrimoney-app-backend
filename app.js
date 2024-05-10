@@ -14,6 +14,9 @@ const profileRoutes = require('./routes/profileRoutes');
 const matchingRoutes = require('./routes/matchingRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const superadminRoutes = require('./routes/super-adminRoutes');
+const collegeList = require('./routes/user/collegeList');
+
+
 
 
 require('dotenv').config();
@@ -37,6 +40,19 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 
+app.use(express.static(__dirname + '/public'));
+app.set("view engine", "ejs");
+app.use(
+    express.urlencoded({
+        extended: true,
+    })
+);
+
+
+
+// For parsing application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
@@ -45,6 +61,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/matching', matchingRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/super-admin', superadminRoutes);
+app.use('/college-list',collegeList);
 
 
 // Serve uploaded photos statically

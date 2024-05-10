@@ -14,7 +14,7 @@ const authenticateUser = async (req, res, next) => {
         console.log('Token:', token); // Log the token for debugging
 
         // Verify the token
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        const decodedToken = jwt.verify(token, "secretkeyappearshere");
 
         console.log('Decoded Token:', decodedToken); // Log the decoded token for debugging
 
