@@ -18,4 +18,5 @@ router.get('/api/data', (req, res) => {
     res.json(filteredColleges);
 });
 
+
 module.exports = router;
