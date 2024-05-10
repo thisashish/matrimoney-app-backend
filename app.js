@@ -16,6 +16,7 @@ const chatRoutes = require('./routes/chatRoutes');
 const superadminRoutes = require('./routes/super-adminRoutes');
 const collegeList = require('./routes/user/collegeList');
 const jobtitle = require('./routes/user/jobtitle');
+const userQualification = require('./routes/user/qualification');
 
 require('dotenv').config();
 
@@ -61,6 +62,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/super-admin', superadminRoutes);
 app.use('/college-list',collegeList);
 app.use('/api/job-titles', jobtitle);
+app.use('/api/qualification',userQualification);
 // Serve uploaded photos statically
 app.use('/uploads', express.static('uploads'));
 
