@@ -1,3 +1,4 @@
+const { Server } = require('socket.io');
 const User = require('../models/User');
 const mongoose = require('mongoose');
 
@@ -30,6 +31,7 @@ exports.uploadPhotos = async (req, res) => {
         if (!user.photos) {
             user.photos = [];
         }
+
 
         // Save photo metadata to user document
         const uploadedPhotos = photos.map(photo => ({

@@ -7,7 +7,11 @@ const PhotoSchema = new mongoose.Schema({
   filename: String,
   originalname: String,
   mimetype: String,
-  size: Number
+  size: Number,
+  verified: {
+    type: Boolean,
+    default: false
+  }
 });
 
 
@@ -72,7 +76,7 @@ const UserSchema = new mongoose.Schema({
   },
   maritalStatus: {
     type: String,
-    enum: ['Never Married', 'Divorced', 'Widowed', 'Awaiting divorce'],
+    // enum: ['Never Married', 'Divorced', 'Widowed', 'Awaiting divorce'],
   },
   religion: {
     type: String,
@@ -97,7 +101,7 @@ const UserSchema = new mongoose.Schema({
   foodPreference: String,
   smoke: {
     type: String,
-    enum: ['Never', 'Socially', 'Ragularly', 'Planning to quit']
+    // enum: ['Never', 'Socially', 'Ragularly', 'Planning to quit']
   },
   drink: {
     type: String,
@@ -105,7 +109,11 @@ const UserSchema = new mongoose.Schema({
   sentRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   receivedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   acceptedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  tokens: [{ type: String }]
+  tokens: [{ type: String }],
+  firstPhotoVerified: {
+    type: Boolean,
+    default: false
+  },
 });
 
 
@@ -125,11 +133,18 @@ UserSchema.pre('save', async function (next) {
     const userId = generateUniqueId(user.email);
     user.userId = userId;
 
+    // Mark the first photo as verified
+    if (user.photos && user.photos.length > 0 && !user.firstPhotoVerified) {
+      user.photos[0].verified = true;
+      user.firstPhotoVerified = true;
+    }
+
     next();
   } catch (error) {
     next(error);
   }
 });
+
 
 // Function to generate unique ID using email
 function generateUniqueId(email) {

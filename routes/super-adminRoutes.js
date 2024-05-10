@@ -18,6 +18,7 @@ const superAdminAuthMiddleware = require('../middleware/superAdminAuthMiddleware
 const adminsController = require('../controllers/adminsController');
 
 
+
 // Admin login route
 router.post('/super-admin-login', async (req, res) => {
     const { email, password } = req.body;
@@ -35,7 +36,7 @@ router.post('/super-admin-login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid password' });
         }
 
-        
+
         const tokenPayload = {
             email: admin.email,
             adminId: admin._id,
@@ -72,7 +73,7 @@ router.post('/create-super-admin', isAdmin, async (req, res) => {
         // If super admin doesn't exist, create a new one
         const password = 'Admin@1234';
         const hashedPassword = await bcrypt.hash(password, 10);
-        
+
 
         const newSuperAdmin = new SuperAdmin({
             email: 'av556548@gmail.com',
@@ -103,7 +104,9 @@ router.post('/create-super-admin', isAdmin, async (req, res) => {
     }
 });
 
-
+const User = require('../models/User');
+// Super Admin Photo Verification Route
+router.put('/verify-photo/:userId', superAdminAuthMiddleware, adminsController.verifyFirstPhoto);
 
 
 router.put('/super-admin-update-email/:id', isAdmin, async (req, res) => {
@@ -144,7 +147,7 @@ router.get('/users-by-gender', authenticateAdmin, adminsController.getUsersByGen
 router.get('/male-users', authenticateAdmin, adminsController.getAllMaleUsers);
 
 
-router.post('/add-admin',superAdminAuthMiddleware, async (req, res) => {
+router.post('/add-admin', superAdminAuthMiddleware, async (req, res) => {
     const { email, adminPassword } = req.body;
 
     try {
@@ -162,7 +165,7 @@ router.post('/add-admin',superAdminAuthMiddleware, async (req, res) => {
         const newAdmin = new Admin({
             email,
             password: hashedAdminPassword,
-            role: 'admin' 
+            role: 'admin'
         });
 
         // Save the new admin to the database

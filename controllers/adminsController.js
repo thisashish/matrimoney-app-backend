@@ -22,6 +22,40 @@ const User = require('../models/User');
 // controllers/adminController.js
 
 
+  exports.verifyFirstPhoto = async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        // Find the user by ID
+        const user = await User.findOne({ userId });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Check if the user has any photos
+        if (!user.photos || user.photos.length === 0) {
+            return res.status(404).json({ message: 'No photos found for the user' });
+        }
+
+        // Get the first photo in the user's photos array
+        const firstPhoto = user.photos[0];
+
+        // Mark the first photo as verified
+        firstPhoto.verified = true;
+
+        // Save the updated user
+        await user.save();
+
+        res.status(200).json({ message: 'First photo verified successfully' });
+    } catch (error) {
+        console.error('Error verifying photo:', error);
+        res.status(500).json({ message: 'Failed to verify photo', error: error.message });
+    }
+};
+
+
+
 exports.getUsersByGender = async (req, res) => {
     try {
         const { gender } = req.query;
