@@ -15,7 +15,7 @@ const authenticateAdmin = require('../middleware/adminAuth');
 const SuperAdmin = require('../models/superAdmin');
 const superAdminAuthMiddleware = require('../middleware/superAdminAuthMiddleware');
 
-const adminsController = require('../controllers/adminsController');
+const adminsController = require('../controllers/super-adminController');
 
 
 
@@ -216,6 +216,16 @@ router.put('/change-password', authenticateSuperAdmin, async (req, res) => {
         res.status(500).json({ message: 'Failed to change password', error: error.message });
     }
 });
+
+// Route to activate a user
+router.put('/activate-user/:userId', superAdminAuthMiddleware, adminsController.activateUser);
+
+// Route to edit user profile
+router.put('/edit-user-profile/:userId', superAdminAuthMiddleware, adminsController.editUserProfile);
+
+// Route to block a user
+router.put('/block-user/:userId', superAdminAuthMiddleware, adminsController.blockUser);
+
 
 
 module.exports = router;

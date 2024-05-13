@@ -18,6 +18,9 @@ const collegeList = require('./routes/user/collegeList');
 const jobtitle = require('./routes/user/jobtitle');
 const userQualification = require('./routes/user/qualification');
 
+const checkBlockedStatus = require('./middleware/checkBlockedStatus');
+
+
 require('dotenv').config();
 
 const app = express();
@@ -52,7 +55,7 @@ app.use(
 // For parsing application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/photos', photoRoutes);
@@ -60,9 +63,11 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/matching', matchingRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/super-admin', superadminRoutes);
-app.use('/college-list',collegeList);
+app.use('/college-list', collegeList);
 app.use('/api/job-titles', jobtitle);
-app.use('/api/qualification',userQualification);
+app.use('/api/qualification', userQualification);
+
+
 // Serve uploaded photos statically
 app.use('/uploads', express.static('uploads'));
 

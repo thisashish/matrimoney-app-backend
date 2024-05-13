@@ -64,7 +64,7 @@ exports.register = async (req, res) => {
         await newUser.save();
 
         // Send OTP email
-        await sendOTP(email, otp); 
+        await sendOTP(email, otp);
 
         const response = {
             statusCode: 201,
@@ -213,20 +213,13 @@ exports.superAdminLogout = async (req, res) => {
 };
 
 
-
-
-
-
-
-
-
 async function sendOTP(email, otp) {
     // Create a nodemailer transporter
     const transporter = nodemailer.createTransport({
-        service: 'Gmail', // Change this to your SMTP service provider
+        service: 'Gmail',
         auth: {
-            user: 'ashish.vishwakarma1267@gmail.com', // Your email address
-            pass: 'bwlm vrqy nqdg omsk' // Your email password
+            user: 'ashish.vishwakarma1267@gmail.com',
+            pass: 'bwlm vrqy nqdg omsk'
         }
     });
 
@@ -256,8 +249,8 @@ exports.sendOTP = async (req, res) => {
             return res.status(400).json({ message: 'No OTP found for the user' });
         }
 
-        const otp = user.otp; // Retrieve OTP from the user object
-        await sendOTP(email || phone, otp); // Send OTP to either email or phone
+        const otp = user.otp; 
+        await sendOTP(email || phone, otp); 
         res.status(200).json({ message: 'OTP sent successfully' });
     } catch (error) {
         console.error('Error sending OTP:', error);

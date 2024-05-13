@@ -27,7 +27,7 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin','super-admin'],
+    enum: ['user', 'admin', 'super-admin'],
     default: 'user'
   },
   phone: Number,
@@ -40,7 +40,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: function (value) {
-        
+
         return value === this.password;
       },
       message: 'Password and confirm password do not match'
@@ -53,6 +53,28 @@ const UserSchema = new mongoose.Schema({
     // enum: ['Male', 'Female']
   },
   dateOfBirth: Date,
+
+  // Calculate age based on date of birth
+  age: {
+    type: Number,
+    default: function () {
+      if (!this.dateOfBirth) return null;
+      const diff = Date.now() - this.dateOfBirth.getTime();
+      const ageDate = new Date(diff);
+      return Math.abs(ageDate.getUTCFullYear() - 1970);
+    }
+  },
+
+  // Format date of birth to make it more readable
+  formattedDateOfBirth: {
+    type: String,
+    default: function () {
+      if (!this.dateOfBirth) return null;
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return this.dateOfBirth.toLocaleDateString('en-US', options);
+    }
+  },
+
 
   preferences: {
     ageRange: {
@@ -71,6 +93,11 @@ const UserSchema = new mongoose.Schema({
   },
   photos: [PhotoSchema],
   profileVisitors: [{ type: String, ref: 'User' }],
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'inactive' 
+  },
   bio: {
     type: String,
   },
@@ -80,11 +107,11 @@ const UserSchema = new mongoose.Schema({
   },
   religion: {
     type: String,
-    
+
   },
   motherTongue: {
     type: String,
-    
+
   },
   community: {
     type: String,
@@ -106,9 +133,12 @@ const UserSchema = new mongoose.Schema({
   drink: {
     type: String,
   },
+
   sentRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   receivedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   acceptedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  declinedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+
   tokens: [{ type: String }],
   firstPhotoVerified: {
     type: Boolean,

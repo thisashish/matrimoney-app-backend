@@ -22,7 +22,7 @@ const User = require('../models/User');
 // controllers/adminController.js
 
 
-  exports.verifyFirstPhoto = async (req, res) => {
+exports.verifyFirstPhoto = async (req, res) => {
     const { userId } = req.params;
 
     try {
@@ -62,7 +62,7 @@ exports.getUsersByGender = async (req, res) => {
 
         // Query the database to find users based on gender
         const users = await User.find({ gender });
-        console.log(users,'users data');
+        console.log(users, 'users data');
 
         // Return the users as a response
         res.status(200).json(users);
@@ -87,5 +87,58 @@ exports.getAllMaleUsers = async (req, res) => {
     } catch (error) {
         console.error('Error fetching male users:', error);
         res.status(500).json({ message: 'Failed to fetch male users', error: error.message });
+    }
+};
+
+// Controller method to activate a user
+exports.activateUser = async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+        // Find the user by ID and update their status to active
+        await User.findOneAndUpdate({ userId: userId }, { status: 'active' });
+        res.status(200).json({ message: 'User activated successfully' });
+    } catch (error) {
+        console.error('Error activating user:', error);
+        res.status(500).json({ message: 'Failed to activate user', error: error.message });
+    }
+};
+
+
+// Controller method to edit user profile
+exports.editUserProfile = async (req, res) => {
+    const userId = req.params.userId;
+    const newData = req.body; // Assuming you're sending the updated profile data in the request body
+    try {
+        // Find the user by ID and update their profile data
+        await User.findByIdAndUpdate(userId, newData);
+        res.status(200).json({ message: 'User profile updated successfully' });
+    } catch (error) {
+        console.error('Error editing user profile:', error);
+        res.status(500).json({ message: 'Failed to edit user profile', error: error.message });
+    }
+};
+
+// Controller method to block a user
+exports.blockUser = async (req, res) => {
+    const userId = req.params.userId;
+    console.log(userId, "userId");
+    try {
+        // Find the user by ID and update their status to blocked
+        await User.findOneAndUpdate({ userId: userId }, { status: 'blocked' });
+
+        // Remove all tokens to prevent user from staying logged in
+        await User.findOneAndUpdate({ userId: userId }, { $set: { tokens: [] } });
+
+        // Clear any pending requests (optional, depending on your requirements)
+        await User.findOneAndUpdate(
+            { userId: userId },
+            { $set: { sentRequests: [], receivedRequests: [], acceptedRequests: [], declinedRequests: [] } }
+        );
+
+        res.status(200).json({ message: 'User blocked successfully' });
+    } catch (error) {
+        console.error('Error blocking user:', error);
+        res.status(500).json({ message: 'Failed to block user', error: error.message });
     }
 };

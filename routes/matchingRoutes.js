@@ -7,7 +7,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 router.get('/potential-matches/:_id', authMiddleware, matchingController.getPotentialMatches);
 
 // Send request
-router.post('/send-request', authMiddleware, matchingController.sendRequest);
+router.post('/send-request',authMiddleware, matchingController.sendRequest);
 
 // Receive requests
 router.get('/receive-requests', authMiddleware, matchingController.receiveRequest);
@@ -15,10 +15,13 @@ router.get('/receive-requests', authMiddleware, matchingController.receiveReques
 // Decline request
 router.post('/decline-request', authMiddleware, matchingController.declineRequest);
 
+
 // Accept request
 router.post('/accept-request', authMiddleware, matchingController.acceptRequest);
 
 module.exports = router;
+
+
 
 
 

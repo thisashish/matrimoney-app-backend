@@ -8,11 +8,9 @@ exports.uploadPhotos = async (req, res) => {
         const userId = req.userData.userId; 
         const photos = req.files;
 
-        console.log('Uploaded files:', photos); // Log uploaded files for debugging
-
         // Find the user by ID
         const user = await User.findOne({userId});
-        console.log(user,'user');
+        
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }

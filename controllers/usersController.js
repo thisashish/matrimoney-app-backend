@@ -7,28 +7,29 @@ const express = require('express');
 const router = express.Router();
 
 
-
 exports.enterAdditionalInfo = async (req, res) => {
     const { firstName, lastName, gender, dateOfBirth } = req.body;
     const userId = req.userData.userId;
 
-
     try {
         // Find the user by ID
         const user = await User.findOne({ userId });
-
+        
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        // Calculate age based on date of birth
+        const age = calculateAge(dateOfBirth);
+        console.log(age,'age');
+
         // Update user's additional information
         user.firstName = firstName;
         user.lastName = lastName;
-        
         user.dateOfBirth = dateOfBirth;
         user.gender = gender;
-        
+        user.age = age; // Update user's age
 
         await user.save();
 
@@ -38,6 +39,46 @@ exports.enterAdditionalInfo = async (req, res) => {
         res.status(500).json({ message: 'Failed to save additional information', error: error.message });
     }
 };
+
+// Function to calculate age based on date of birth
+function calculateAge(dateOfBirth) {
+    const dob = new Date(dateOfBirth);
+    const diff = Date.now() - dob.getTime();
+    const ageDate = new Date(diff);
+    return Math.abs(ageDate.getUTCFullYear() - 1970);
+}
+
+
+// exports.enterAdditionalInfo = async (req, res) => {
+//     const { firstName, lastName, gender, dateOfBirth } = req.body;
+//     const userId = req.userData.userId;
+
+
+//     try {
+//         // Find the user by ID
+//         const user = await User.findOne({ userId });
+
+
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+
+//         // Update user's additional information
+//         user.firstName = firstName;
+//         user.lastName = lastName;
+        
+//         user.dateOfBirth = dateOfBirth;
+//         user.gender = gender;
+        
+
+//         await user.save();
+
+//         res.status(200).json({ message: 'Additional information saved successfully' });
+//     } catch (error) {
+//         console.error('Error saving additional information:', error);
+//         res.status(500).json({ message: 'Failed to save additional information', error: error.message });
+//     }
+// };
 
 
 exports.getAdditionalInfo = async (req, res) => {
