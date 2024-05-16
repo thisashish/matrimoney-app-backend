@@ -125,6 +125,41 @@ exports.getOppositeGenderUsers = async (req, res) => {
 };
 
 
+// Assuming this is your profile viewing route or controller
+exports.viewProfile = async (req, res) => {
+    const userIdToView = req.params.userId;
+    const authenticatedUserId = req.userData.userId;
+
+    try {
+        // Find the authenticated user
+        const authenticatedUser = await User.findOne({ userId: authenticatedUserId });
+        
+        if (!authenticatedUser) {
+            return res.status(404).json({ message: 'Authenticated user not found' });
+        }
+
+        // Check if the user to view is blocked by the authenticated user
+        if (authenticatedUser.blockedUsers.includes(userIdToView)) {
+            // If the user is blocked, you can redirect to a 404 page or display a message
+            return res.status(404).json({ message: 'User profile not found' });
+        }
+
+        // Proceed with displaying the profile
+        // You can fetch the user profile details and send them in the response
+        // Example:
+        const userProfile = await User.findOne({ userId: userIdToView });
+        if (!userProfile) {
+            return res.status(404).json({ message: 'User profile not found' });
+        }
+        
+        res.status(200).json({ userProfile });
+    } catch (error) {
+        console.error('Error viewing profile:', error);
+        res.status(500).json({ message: 'Failed to view profile', error: error.message });
+    }
+};
+
+
 exports.blockUser = async (req, res) => {
     const userIdToBlock = req.params.userId;
     const authenticatedUserId = req.userData.userId;

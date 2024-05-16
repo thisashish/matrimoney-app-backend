@@ -10,7 +10,7 @@ const User = require('../models/User');
 // router.post('/create-profile', profileController.createProfile);
 router.post('/:_id/update-profile', profileController.updateProfile);
 
-router.get('/search', profileController.searchProfiles);
+router.get('/search',authenticateUser, profileController.searchProfiles);
 router.get('/searchByUserId',authenticateUser, profileController.searchProfileByUserId);
 
 // Route to fetch profile visitors
