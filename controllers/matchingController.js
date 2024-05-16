@@ -4,7 +4,7 @@ const User = require('../models/User');
 const getPotentialMatches = async (userId) => {
     try {
         // Get the gender of the current user
-        const currentUser = await User.findById(userId);
+        const currentUser = await User.findOne({userId});
         const currentUserGender = currentUser.gender;
 
         // Find potential matches with opposite gender preference

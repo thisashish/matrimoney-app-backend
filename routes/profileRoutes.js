@@ -10,14 +10,17 @@ const User = require('../models/User');
 // router.post('/create-profile', profileController.createProfile);
 router.post('/:_id/update-profile', profileController.updateProfile);
 
+router.get('/search', profileController.searchProfiles);
+router.get('/searchByUserId',authenticateUser, profileController.searchProfileByUserId);
+
 // Route to fetch profile visitors
-router.get('/:userId/profile-visitors', authenticateUser,getProfileVisitors, async (req, res) => {
+router.get('/:userId/profile-visitors', authenticateUser, getProfileVisitors, async (req, res) => {
     try {
         // Get the userId from request parameters
         const userId = req.params.userId;
 
         // Call the getProfileVisitors controller function to fetch profile visitors
-        const profileVisitors = await userController.find({userId});
+        const profileVisitors = await userController.find({ userId });
 
         // Send the profile visitors data as a response
         res.status(200).json({ profileVisitors });
@@ -49,8 +52,6 @@ router.get('/profile-visitors', authenticateUser, async (req, res) => {
 });
 
 
-
-
 // Route to view user's profile
 router.get('/:userId', authenticateUser, updateProfileVisitors, async (req, res) => {
     try {
@@ -58,17 +59,16 @@ router.get('/:userId', authenticateUser, updateProfileVisitors, async (req, res)
         const userId = req.params.userId;
         console.log("userIdxxx", userId);
 
-        const user = await User.find({userId} );
-        console.log("user",user);
+        const user = await User.find({ userId });
+        console.log("user", user);
 
-        
+
         res.status(200).json({ user });
     } catch (error) {
         console.error('Error fetching user profile:', error);
         res.status(500).json({ message: 'Failed to fetch user profile', error: error.message });
     }
 });
-
 
 
 module.exports = router;

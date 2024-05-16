@@ -46,7 +46,7 @@ const UserSchema = new mongoose.Schema({
       message: 'Password and confirm password do not match'
     }
   },
-  age: Number,
+
   gender: {
 
     type: String,
@@ -96,7 +96,7 @@ const UserSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['active', 'inactive'],
-    default: 'inactive' 
+    default: 'inactive'
   },
   bio: {
     type: String,
@@ -109,6 +109,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
 
   },
+  height: Number,
   motherTongue: {
     type: String,
 
@@ -138,6 +139,8 @@ const UserSchema = new mongoose.Schema({
   receivedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   acceptedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   declinedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+
+  blockedUsers: [String],
 
   tokens: [{ type: String }],
   firstPhotoVerified: {
@@ -176,13 +179,12 @@ UserSchema.pre('save', async function (next) {
 });
 
 
+
 // Function to generate unique ID using email
 function generateUniqueId(email) {
   const hash = crypto.createHash('sha256').update(email).digest('hex');
   return hash.substring(0, 8);
 }
-
-
 
 
 const User = mongoose.model('User', UserSchema);

@@ -227,5 +227,36 @@ router.put('/edit-user-profile/:userId', superAdminAuthMiddleware, adminsControl
 router.put('/block-user/:userId', superAdminAuthMiddleware, adminsController.blockUser);
 
 
+// PUT route to update user's email by super admin
+router.put('/update-user-email/:userId', superAdminAuthMiddleware, async (req, res) => {
+    const userId = req.params.userId;
+    const { newEmail } = req.body; // Assuming you send the new email in the request body
+
+    // Check if new email is provided
+    if (!newEmail) {
+        return res.status(400).json({ message: 'New email address is required' });
+    }
+
+    try {
+        // Find the user by ID
+        const user = await User.findOne({userId});
+
+        // Check if user exists
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update the user's email
+        user.email = newEmail;
+        await user.save();
+
+        res.status(200).json({ message: 'User email updated successfully', user });
+    } catch (error) {
+        console.error('Error updating user email:', error);
+        res.status(500).json({ message: 'Failed to update user email', error: error.message });
+    }
+});
+
+
 
 module.exports = router;

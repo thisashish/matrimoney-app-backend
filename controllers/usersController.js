@@ -14,7 +14,7 @@ exports.enterAdditionalInfo = async (req, res) => {
     try {
         // Find the user by ID
         const user = await User.findOne({ userId });
-        
+
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -22,7 +22,7 @@ exports.enterAdditionalInfo = async (req, res) => {
 
         // Calculate age based on date of birth
         const age = calculateAge(dateOfBirth);
-        console.log(age,'age');
+        console.log(age, 'age');
 
         // Update user's additional information
         user.firstName = firstName;
@@ -66,10 +66,10 @@ function calculateAge(dateOfBirth) {
 //         // Update user's additional information
 //         user.firstName = firstName;
 //         user.lastName = lastName;
-        
+
 //         user.dateOfBirth = dateOfBirth;
 //         user.gender = gender;
-        
+
 
 //         await user.save();
 
@@ -87,7 +87,7 @@ exports.getAdditionalInfo = async (req, res) => {
 
     try {
         // Find the user by ID
-        const user = await User.findOne({userId});
+        const user = await User.findOne({ userId });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -112,6 +112,7 @@ exports.getOppositeGenderUsers = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
+
         // Find users with opposite gender
         const oppositeGenderUsers = await User.find({ gender: { $ne: user.gender } });
 
@@ -122,6 +123,35 @@ exports.getOppositeGenderUsers = async (req, res) => {
         res.status(500).json({ message: 'Failed to retrieve opposite gender users', error: error.message });
     }
 };
+
+
+exports.blockUser = async (req, res) => {
+    const userIdToBlock = req.params.userId;
+    const authenticatedUserId = req.userData.userId;
+    console.log(userIdToBlock, "userIdToBlock");
+    console.log(authenticatedUserId, "authenticatedUserId");
+
+    try {
+        // Find the authenticated user
+        const authenticatedUser = await User.findOne({ userId: authenticatedUserId });
+        console.log(authenticatedUser, "authenticatedUser");
+
+        if (!authenticatedUser) {
+            return res.status(404).json({ message: 'Authenticated user not found' });
+        }
+
+        // Add the userIdToBlock to the list of blocked users
+        authenticatedUser.blockedUsers.push(userIdToBlock);
+        await authenticatedUser.save();
+
+        res.status(200).json({ message: 'User blocked successfully' });
+    } catch (error) {
+        console.error('Error blocking user:', error);
+        res.status(500).json({ message: 'Failed to block user', error: error.message });
+    }
+};
+
+
 
 
 

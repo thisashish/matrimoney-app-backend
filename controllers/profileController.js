@@ -7,14 +7,14 @@ exports.getProfileVisitors = async (req, res) => {
     try {
         // Find the user
         const user = await User.findOne({ userId });
-       
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        
+
         // Retrieve profile visitors' information using their userIds
         const profileVisitors = await User.find({ userId: { $in: user.profileVisitors } });
-console.log("profileVisitors",profileVisitors);
+        console.log("profileVisitors", profileVisitors);
         res.status(200).json({ profileVisitors });
     } catch (error) {
         console.error('Error fetching profile visitors:', error);
@@ -24,6 +24,93 @@ console.log("profileVisitors",profileVisitors);
 
 
 
+exports.searchProfiles = async (req, res) => {
+    try {
+
+        const { minAge, maxAge, maritalStatus, religion, motherTongue, minSalary, maxSalary, country, state } = req.query;
+
+        // Construct query based on search criteria
+        const query = {};
+
+
+        if (minAge && maxAge) {
+            query.age = { $gte: minAge, $lte: maxAge };
+        }
+
+
+
+        // Add height filter if provided
+        // if (minHeight && maxHeight) {
+        //     query.height = { $gte: minHeight, $lte: maxHeight };
+        // }
+
+
+        if (maritalStatus) {
+            query.maritalStatus = maritalStatus;
+        }
+
+
+        if (religion) {
+            query.religion = religion;
+        }
+
+
+        if (motherTongue) {
+            query.motherTongue = motherTongue;
+        }
+
+
+        if (minSalary && maxSalary) {
+            const minSalaryValue = parseInt(minSalary);
+            const maxSalaryValue = parseInt(maxSalary);
+
+            if (!isNaN(minSalaryValue) && !isNaN(maxSalaryValue)) {
+                query.salary = { $gte: minSalaryValue, $lte: maxSalaryValue };
+            } else {
+                throw new Error('Invalid salary values');
+            }
+        }
+
+
+
+        // if (country) {
+        //     query.country = country;
+        // }
+
+        // // Add state filter if provided
+        // if (state) {
+        //     query.state = state;
+        // }
+
+        console.log(query, 'query');
+
+        // Query the database with the constructed query
+        const matchingProfiles = await User.find(query);
+
+        res.status(200).json({ profiles: matchingProfiles });
+    } catch (error) {
+        console.error('Error searching profiles:', error);
+        res.status(500).json({ message: 'Failed to search profiles', error: error.message });
+    }
+};
+
+exports.searchProfileByUserId = async (req, res) => {
+    try {
+        const { userId } = req.query;
+
+        // Query the database to find profile by userId
+        const profile = await User.findOne({ userId });
+
+        if (!profile) {
+            return res.status(404).json({ message: 'Profile not found' });
+        }
+
+        res.status(200).json({ profile });
+    } catch (error) {
+        console.error('Error searching profile by userId:', error);
+        res.status(500).json({ message: 'Failed to search profile by userId', error: error.message });
+    }
+};
 
 exports.updateProfileVisitors = async (req, res, next) => {
     const profileOwnerId = req.params.userId; // ID of the user whose profile is being visited
@@ -32,7 +119,7 @@ exports.updateProfileVisitors = async (req, res, next) => {
     try {
         // Find the profile owner by userId
         const profileOwner = await User.findOne({ userId: profileOwnerId });
-        console.log(profileOwner,"profileOwner");
+        console.log(profileOwner, "profileOwner");
 
         if (!profileOwner) {
             return res.status(404).json({ message: 'Profile owner not found' });
@@ -61,12 +148,6 @@ exports.updateProfileVisitors = async (req, res, next) => {
 //         throw new Error(`Failed to find user: ${error.message}`);
 //     }
 // };
-
-
-
-
-
-
 
 
 exports.updateProfile = async (req, res) => {
@@ -103,4 +184,5 @@ exports.updateProfile = async (req, res) => {
         res.status(500).json({ message: 'Failed to update profile', error: error.message });
     }
 };
+
 

@@ -87,30 +87,30 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
+        // Find the user by email
         const user = await User.findOne({ email });
-        console.log('login user', user);
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        console.log(password, 'password');
-        console.log(user.password, 'user password');
+
         // Validate password
         const isPasswordValid = await bcrypt.compare(password, user.password);
-        console.log(isPasswordValid, 'isPasswordValid');
 
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Invalid password' });
+        }
+
+        // Check if the user is blocked
+        if (user.status === 'blocked') {
+            return res.status(403).json({ message: 'Your account is blocked. Please contact customer support for assistance.' });
         }
 
         // Assuming password validation is successful, generate a new token
         const tokenPayload = {
             email: user.email,
             userId: user.userId,
-
         };
-
-        console.log('login tokenPayload', tokenPayload);
 
         const token = jwt.sign(
             tokenPayload,
@@ -122,13 +122,61 @@ exports.login = async (req, res) => {
         user.tokens = token;
         await user.save();
 
-        // res.cookie('token', token, { httpOnly: true });
         res.status(200).json({ message: 'Login successful', token, tokenPayload });
     } catch (error) {
         console.error('Error logging in user:', error);
         res.status(500).json({ message: 'Failed to login user', error: error.message });
     }
 };
+
+
+
+// exports.login = async (req, res) => {
+//     const { email, password } = req.body;
+
+//     try {
+//         const user = await User.findOne({ email });
+//         console.log('login user', user);
+
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+//         console.log(password, 'password');
+//         console.log(user.password, 'user password');
+//         // Validate password
+//         const isPasswordValid = await bcrypt.compare(password, user.password);
+//         console.log(isPasswordValid, 'isPasswordValid');
+
+//         if (!isPasswordValid) {
+//             return res.status(401).json({ message: 'Invalid password' });
+//         }
+
+//         // Assuming password validation is successful, generate a new token
+//         const tokenPayload = {
+//             email: user.email,
+//             userId: user.userId,
+
+//         };
+
+//         console.log('login tokenPayload', tokenPayload);
+
+//         const token = jwt.sign(
+//             tokenPayload,
+//             process.env.JWT_SECRET,
+//             { expiresIn: process.env.JWT_EXPIRATION }
+//         );
+
+//         // Remove previous tokens and store the new token in user document
+//         user.tokens = token;
+//         await user.save();
+
+//         // res.cookie('token', token, { httpOnly: true });
+//         res.status(200).json({ message: 'Login successful', token, tokenPayload });
+//     } catch (error) {
+//         console.error('Error logging in user:', error);
+//         res.status(500).json({ message: 'Failed to login user', error: error.message });
+//     }
+// };
 
 
 
@@ -249,8 +297,8 @@ exports.sendOTP = async (req, res) => {
             return res.status(400).json({ message: 'No OTP found for the user' });
         }
 
-        const otp = user.otp; 
-        await sendOTP(email || phone, otp); 
+        const otp = user.otp;
+        await sendOTP(email || phone, otp);
         res.status(200).json({ message: 'OTP sent successfully' });
     } catch (error) {
         console.error('Error sending OTP:', error);

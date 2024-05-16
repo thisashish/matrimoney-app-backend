@@ -8,8 +8,11 @@ router.post('/additional-info/:userId',authenticateUser, userController.enterAdd
 
 router.get('/additional-info/:userId', authenticateUser, userController.getAdditionalInfo);
 
-router.post('/:userId/opposite-gender-users',authenticateUser, userController.getOppositeGenderUsers);
+router.get('/:userId/opposite-gender-users',authenticateUser, userController.getOppositeGenderUsers);
+
+router.post('/block/:userId', authenticateUser, userController.blockUser);
 
 
 module.exports = router;
+
 

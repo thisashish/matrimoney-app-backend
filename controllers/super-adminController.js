@@ -111,13 +111,14 @@ exports.editUserProfile = async (req, res) => {
     const newData = req.body; // Assuming you're sending the updated profile data in the request body
     try {
         // Find the user by ID and update their profile data
-        await User.findByIdAndUpdate(userId, newData);
+        await User.findOneAndUpdate({ userId: userId }, newData); // Pass query criteria as an object
         res.status(200).json({ message: 'User profile updated successfully' });
     } catch (error) {
         console.error('Error editing user profile:', error);
         res.status(500).json({ message: 'Failed to edit user profile', error: error.message });
     }
 };
+
 
 // Controller method to block a user
 exports.blockUser = async (req, res) => {
