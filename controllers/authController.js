@@ -119,7 +119,7 @@ exports.login = async (req, res) => {
         );
 
         // Remove previous tokens and store the new token in user document
-        user.tokens = token;
+        user.tokens = [token];
         await user.save();
 
         res.status(200).json({ message: 'Login successful', token, tokenPayload });
