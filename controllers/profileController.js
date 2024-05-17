@@ -24,8 +24,9 @@ exports.getProfileVisitors = async (req, res) => {
 
 exports.searchProfiles = async (req, res) => {
     try {
-        const { minAge, maxAge, maritalStatus, religion, motherTongue, minSalary, maxSalary } = req.query;
         const authenticatedUserId = req.userData.userId;
+        
+        const { minAge, maxAge, maritalStatus, religion, motherTongue, minSalary, maxSalary } = req.query;
 
         // Construct query based on search criteria
         const query = {};
@@ -57,11 +58,15 @@ exports.searchProfiles = async (req, res) => {
             }
         }
 
-        // Add condition to exclude blocked users
-        query.userId = { $nin: [authenticatedUserId] };
+        // Filter out users who have blocked the authenticated user
+        query.blockedUsers = { $ne: authenticatedUserId };
+        
+
+        console.log(query, 'query');
 
         // Query the database with the constructed query
         const matchingProfiles = await User.find(query);
+        
 
         res.status(200).json({ profiles: matchingProfiles });
     } catch (error) {
@@ -69,6 +74,7 @@ exports.searchProfiles = async (req, res) => {
         res.status(500).json({ message: 'Failed to search profiles', error: error.message });
     }
 };
+
 
 
 

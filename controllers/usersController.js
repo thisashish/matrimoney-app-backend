@@ -112,50 +112,14 @@ exports.getOppositeGenderUsers = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-
-        // Find users with opposite gender
-        const oppositeGenderUsers = await User.find({ gender: { $ne: user.gender } });
+        // Find users with opposite gender and who have not blocked the current user
+        let oppositeGenderUsers = await User.find({ gender: { $ne: user.gender }, blockedUsers: { $nin: [userId] } });
 
         // Return opposite gender users
         res.status(200).json({ oppositeGenderUsers });
     } catch (error) {
         console.error('Error retrieving opposite gender users:', error);
         res.status(500).json({ message: 'Failed to retrieve opposite gender users', error: error.message });
-    }
-};
-
-
-// Assuming this is your profile viewing route or controller
-exports.viewProfile = async (req, res) => {
-    const userIdToView = req.params.userId;
-    const authenticatedUserId = req.userData.userId;
-
-    try {
-        // Find the authenticated user
-        const authenticatedUser = await User.findOne({ userId: authenticatedUserId });
-        
-        if (!authenticatedUser) {
-            return res.status(404).json({ message: 'Authenticated user not found' });
-        }
-
-        // Check if the user to view is blocked by the authenticated user
-        if (authenticatedUser.blockedUsers.includes(userIdToView)) {
-            // If the user is blocked, you can redirect to a 404 page or display a message
-            return res.status(404).json({ message: 'User profile not found' });
-        }
-
-        // Proceed with displaying the profile
-        // You can fetch the user profile details and send them in the response
-        // Example:
-        const userProfile = await User.findOne({ userId: userIdToView });
-        if (!userProfile) {
-            return res.status(404).json({ message: 'User profile not found' });
-        }
-        
-        res.status(200).json({ userProfile });
-    } catch (error) {
-        console.error('Error viewing profile:', error);
-        res.status(500).json({ message: 'Failed to view profile', error: error.message });
     }
 };
 
@@ -187,8 +151,35 @@ exports.blockUser = async (req, res) => {
 };
 
 
+exports.unblockUser = async (req, res) => {
+    const userIdToUnblock = req.params.userId;
+    const authenticatedUserId = req.userData.userId;
+    console.log(userIdToUnblock, "userIdToUnblock");
+    console.log(authenticatedUserId, "authenticatedUserId");
 
+    try {
+        // Find the authenticated user
+        const authenticatedUser = await User.findOne({ userId: authenticatedUserId });
+        console.log(authenticatedUser, "authenticatedUser");
 
+        if (!authenticatedUser) {
+            return res.status(404).json({ message: 'Authenticated user not found' });
+        }
+
+        // Remove the userIdToUnblock from the list of blocked users
+        const index = authenticatedUser.blockedUsers.indexOf(userIdToUnblock);
+        if (index > -1) {
+            authenticatedUser.blockedUsers.splice(index, 1);
+            await authenticatedUser.save();
+            res.status(200).json({ message: 'User unblocked successfully' });
+        } else {
+            res.status(404).json({ message: 'User not found in blocked list' });
+        }
+    } catch (error) {
+        console.error('Error unblocking user:', error);
+        res.status(500).json({ message: 'Failed to unblock user', error: error.message });
+    }
+};
 
 
 

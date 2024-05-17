@@ -5,8 +5,8 @@ const authenticateUser = require('../middleware/authMiddleware');
 const User = require('../models/User');
 
 router.post('/register', authController.register);
-router.post('/login',authController.login);
-router.post('/logout', authenticateUser, authController.logout);
+router.post('/login',authenticateUser,authController.login);
+router.post('/logout', authenticateUser, authController.logout);    
 router.post('/send-otp', authController.sendOTP);
 router.post('/verify-otp', authenticateUser,authController.verifyOTP);
 
