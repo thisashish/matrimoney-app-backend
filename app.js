@@ -17,8 +17,9 @@ const superadminRoutes = require('./routes/super-adminRoutes');
 const collegeList = require('./routes/user/collegeList');
 const jobtitle = require('./routes/user/jobtitle');
 const userQualification = require('./routes/user/qualification');
-
 const checkBlockedStatus = require('./middleware/checkBlockedStatus');
+const paymentRoutes = require('./routes/paymentRoutes');
+
 
 
 require('dotenv').config();
@@ -66,6 +67,7 @@ app.use('/super-admin', superadminRoutes);
 app.use('/college-list', collegeList);
 app.use('/api/job-titles', jobtitle);
 app.use('/api/qualification', userQualification);
+app.use('/api/payment', paymentRoutes);
 
 
 // Serve uploaded photos statically
