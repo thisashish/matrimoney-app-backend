@@ -3,14 +3,25 @@ const User = require('../models/User');
 
 const getPotentialMatches = async (userId) => {
     try {
-        // Get the gender of the current user
-        const currentUser = await User.findOne({userId});
-        const currentUserGender = currentUser.gender;
+        // Get the current user
+        const currentUser = await User.findById(userId);
 
-        // Find potential matches with opposite gender preference
+        if (!currentUser) {
+            throw new Error('User not found');
+        }
+
+        // Get the opposite gender
+        const oppositeGender = currentUser.gender === 'male' ? 'female' : 'male';
+
+        // Find potential matches
         const potentialMatches = await User.find({
-            _id: { $ne: userId }, // Exclude the current user from potential matches
-            gender: currentUserGender === 'male' ? 'female' : 'male'
+            _id: { $ne: userId }, // Exclude the current user
+            gender: oppositeGender,
+            'preferences.gender': currentUser.gender, // Match gender preference
+            age: {
+                $gte: currentUser.preferences.ageRange.min,
+                $lte: currentUser.preferences.ageRange.max
+            }
         });
 
         return potentialMatches;
@@ -23,6 +34,7 @@ const getPotentialMatches = async (userId) => {
 exports.getPotentialMatches = async (req, res) => {
     try {
         const userId = req.params._id;
+        console.log(userId,'userId');
         const potentialMatches = await getPotentialMatches(userId);
         res.json(potentialMatches);
     } catch (error) {
@@ -30,6 +42,7 @@ exports.getPotentialMatches = async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch potential matches' });
     }
 };
+
 
 
 exports.sendRequest = async (req, res) => {
@@ -51,7 +64,7 @@ exports.sendRequest = async (req, res) => {
             receiver: targetId,
             message: customMessage
         });
-        console.log(newMessage,'newMessage');
+        console.log(newMessage, 'newMessage');
         await newMessage.save();
 
         res.json({ message: 'Request sent successfully' });
@@ -60,6 +73,7 @@ exports.sendRequest = async (req, res) => {
         res.status(500).json({ message: 'Failed to send request' });
     }
 };
+
 
 
 // exports.sendRequest = async (req, res) => {
@@ -156,7 +170,6 @@ exports.declineRequest = async (req, res) => {
         res.status(500).json({ message: 'Failed to decline request' });
     }
 };
-
 
 
 
