@@ -1,11 +1,9 @@
 
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const User = require('../models/User');
-const express = require('express');
-const router = express.Router();
-
+const moment = require('moment');
+const axios = require('axios');
+const { GEOCODING_API_URL, API_KEY } = require('../config/config');
 
 exports.enterAdditionalInfo = async (req, res) => {
     const { firstName, lastName, gender, dateOfBirth } = req.body;
@@ -101,6 +99,8 @@ exports.getAdditionalInfo = async (req, res) => {
 };
 
 
+
+
 exports.getOppositeGenderUsers = async (req, res) => {
     const userId = req.userData.userId;
     console.log(userId, 'userid');
@@ -120,6 +120,17 @@ exports.getOppositeGenderUsers = async (req, res) => {
     } catch (error) {
         console.error('Error retrieving opposite gender users:', error);
         res.status(500).json({ message: 'Failed to retrieve opposite gender users', error: error.message });
+    }
+};
+
+const resetDailyRequestCountIfNewDay = async (user) => {
+    const today = moment().startOf('day');
+    const lastRequestDate = moment(user.lastRequestDate).startOf('day');
+
+    if (!lastRequestDate.isSame(today)) {
+        user.dailyRequestCount = 0;
+        user.lastRequestDate = new Date();
+        await user.save();
     }
 };
 
@@ -178,6 +189,34 @@ exports.unblockUser = async (req, res) => {
     } catch (error) {
         console.error('Error unblocking user:', error);
         res.status(500).json({ message: 'Failed to unblock user', error: error.message });
+    }
+};
+
+
+
+// Controller function to find nearby people based on a user's location
+exports.findNearbyPeople = async (req, res) => {
+    try {
+        // Get the user's location from the request body
+        const { address } = req.body;
+
+        // Use Geocoding API to convert address to geographic coordinates (latitude and longitude)
+        const geocodingResponse = await axios.get(GEOCODING_API_URL, {
+            params: {
+                address: address,
+                key: API_KEY
+            }
+        });
+
+        const location = geocodingResponse.data.results[0].geometry.location;
+        const { lat, lng } = location;
+
+        // Now, you can use the latitude and longitude to find nearby people in your database
+        // For demonstration purposes, we'll just send back the coordinates
+        res.json({ latitude: lat, longitude: lng });
+    } catch (error) {
+        console.error('Error finding nearby people:', error);
+        res.status(500).json({ message: 'Failed to find nearby people' });
     }
 };
 

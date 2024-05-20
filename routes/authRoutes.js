@@ -10,6 +10,7 @@ router.post('/login', authController.login);
 router.post('/logout', authenticateUser, authController.logout);
 router.post('/send-otp', authController.sendOTP);
 router.post('/verify-otp', authenticateUser, authController.verifyOTP);
+router.delete('/delete-account', authenticateUser, authController.deleteAccount);
 
 
 // router.get('/profile', authMiddleware, authController.getUserProfile);

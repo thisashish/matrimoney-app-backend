@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const matchingController = require('../controllers/matchingController');
 const authMiddleware = require('../middleware/authMiddleware');
-const { findByIdAndUpdate, findOneAndUpdate } = require('../models/User');
+
 
 // Get potential matches
 router.get('/potential-matches/:_id', authMiddleware, matchingController.getPotentialMatches);
@@ -18,6 +18,10 @@ router.post('/decline-request', authMiddleware, matchingController.declineReques
 
 // Accept request
 router.post('/accept-request', authMiddleware, matchingController.acceptRequest);
+
+// Get users who accepted requests
+router.get('/accepted-requests/:userId', authMiddleware, matchingController.getAcceptedRequests);
+
 
 module.exports = router;
 

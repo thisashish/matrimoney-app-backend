@@ -34,7 +34,7 @@ const getPotentialMatches = async (userId) => {
 exports.getPotentialMatches = async (req, res) => {
     try {
         const userId = req.params._id;
-        console.log(userId,'userId');
+        console.log(userId, 'userId');
         const potentialMatches = await getPotentialMatches(userId);
         res.json(potentialMatches);
     } catch (error) {
@@ -43,14 +43,18 @@ exports.getPotentialMatches = async (req, res) => {
     }
 };
 
-
-
 exports.sendRequest = async (req, res) => {
     try {
         const { _id, targetId } = req.body;
 
+        // Check if the user has exceeded the daily request limit
+        const user = await User.findById(_id);
+        if (user.dailyRequestCount >= 5 && !user.isPremium) {
+            return res.status(403).json({ message: 'You have reached your daily request limit. Please purchase a membership to send more requests.' });
+        }
+
         // Update sender's sentRequests field
-        await User.findByIdAndUpdate(_id, { $push: { sentRequests: targetId } });
+        await User.findByIdAndUpdate(_id, { $push: { sentRequests: targetId }, $inc: { dailyRequestCount: 1 } });
 
         // Update receiver's receivedRequests field with the sender's ID
         await User.findByIdAndUpdate(targetId, { $push: { receivedRequests: _id } });
@@ -73,26 +77,6 @@ exports.sendRequest = async (req, res) => {
         res.status(500).json({ message: 'Failed to send request' });
     }
 };
-
-
-
-// exports.sendRequest = async (req, res) => {
-//     try {
-//         const { _id, targetId } = req.body;
-//         console.log(_id, "idddddddddddddddddddddddd");
-//         console.log(targetId, "targetId");
-
-//         await User.findByIdAndUpdate(_id, { $push: { sentRequests: targetId } });
-//         // Update receiver's receivedRequests field with the sender's ID
-//         await User.findByIdAndUpdate(targetId, { $push: { receivedRequests: _id } });
-//         res.json({ message: 'Request sent successfully' });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Failed to send request' });
-//     }
-// };
-
-
 
 exports.acceptRequest = async (req, res) => {
     try {
@@ -128,8 +112,6 @@ exports.acceptRequest = async (req, res) => {
         res.status(500).json({ message: 'Failed to accept request' });
     }
 };
-
-
 
 exports.receiveRequest = async (req, res) => {
     try {
@@ -172,47 +154,25 @@ exports.declineRequest = async (req, res) => {
 };
 
 
+exports.getAcceptedRequests = async (req, res) => {
+    try {
+        const userId = req.params.userId;
 
-// exports.declineRequest = async (req, res) => {
-//     try {
-//         console.log("Decline request controller reached");
-//         const { _id, targetId } = req.body;
+        // Find the current user
+        const currentUser = await User.findOne({ userId }).populate('acceptedRequests');
+        console.log("currentUser", currentUser);
 
-//         // Remove request from receiver's receivedRequests field
-//         const updatedReceiver = await User.findByIdAndUpdate(_id, { $pull: { receivedRequests: targetId } });
-//         console.log("Updated receiver:", updatedReceiver);
+        if (!currentUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 
-//         // Remove request from sender's sentRequests field
-//         const updatedSender = await User.findByIdAndUpdate(targetId, { $pull: { sentRequests: _id } });
-//         console.log("Updated sender:", updatedSender);
+        // Get the list of users who accepted the current user's requests
+        const acceptedRequests = currentUser.acceptedRequests;
 
-//         // Add target's ID to the declinedRequests field of the sender
-//         const updatedSenderWithDeclined = await User.findByIdAndUpdate(_id, { $push: { declinedRequests: targetId } });
-//         console.log("Updated sender with declined requests:", updatedSenderWithDeclined);
-
-//         res.json({ message: 'Request declined successfully' });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Failed to decline request' });
-//     }
-// };
-
-
-
-
-
-// exports.declineRequest = async (req, res) => {
-//     try {
-//         const { _id, targetId } = req.body;
-
-//         // Remove request from receiver's receivedRequests field
-//         await User.findByIdAndUpdate(_id, { $pull: { receivedRequests: targetId } });
-//         // Remove request from sender's sentRequests field
-//         await User.findByIdAndUpdate(targetId, { $pull: { sentRequests: _id } });
-//         res.json({ message: 'Request declined successfully' });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Failed to decline request' });
-//     }
-// };
+        res.json(acceptedRequests);
+    } catch (error) {
+        console.error('Error fetching accepted requests:', error);
+        res.status(500).json({ message: 'Failed to fetch accepted requests' });
+    }
+};
 

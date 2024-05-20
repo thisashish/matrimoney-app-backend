@@ -6,7 +6,6 @@ const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
 
-
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const photoRoutes = require('./routes/photoRoutes');
@@ -19,8 +18,7 @@ const jobtitle = require('./routes/user/jobtitle');
 const userQualification = require('./routes/user/qualification');
 const checkBlockedStatus = require('./middleware/checkBlockedStatus');
 const paymentRoutes = require('./routes/paymentRoutes');
-
-
+const recommendationRoutes = require('./routes/recommendationRoutes');
 
 require('dotenv').config();
 
@@ -46,12 +44,10 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname + '/public'));
 app.set("view engine", "ejs");
 app.use(
-    express.urlencoded({
-        extended: true,
-    })
+  express.urlencoded({
+    extended: true,
+  })
 );
-
-
 
 // For parsing application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
@@ -68,6 +64,7 @@ app.use('/college-list', collegeList);
 app.use('/api/job-titles', jobtitle);
 app.use('/api/qualification', userQualification);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/user', recommendationRoutes);
 
 
 // Serve uploaded photos statically
@@ -87,7 +84,6 @@ io.on('connection', (socket) => {
     io.emit('newMessage', message);
   });
 });
-
 
 
 app.listen(PORT, () => {

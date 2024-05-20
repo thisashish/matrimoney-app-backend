@@ -93,11 +93,9 @@ const UserSchema = new mongoose.Schema({
   },
   photos: [PhotoSchema],
   profileVisitors: [{ type: String, ref: 'User' }],
-  status: {
-    type: String,
-    enum: ['active', 'inactive'],
-    default: 'inactive'
-  },
+  
+  status: { type: String, enum: ['active', 'blocked', 'inactive'], default: 'active' },
+
   bio: {
     type: String,
   },
@@ -142,6 +140,10 @@ const UserSchema = new mongoose.Schema({
 
   blockedUsers: [String],
 
+  interactedUsers: { type: [String], default: [] },
+  dailyRequestCount: { type: Number, default: 0 },
+  lastRequestDate: { type: Date, default: Date.now },
+  isPremium: { type: Boolean, default: false },
   tokens: [{ type: String }],
   firstPhotoVerified: {
     type: Boolean,

@@ -112,6 +112,7 @@ exports.login = async (req, res) => {
             userId: user.userId,
         };
 
+
         const token = jwt.sign(
             tokenPayload,
             process.env.JWT_SECRET,
@@ -128,6 +129,7 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Failed to login user', error: error.message });
     }
 };
+
 
 
 
@@ -244,8 +246,6 @@ exports.superAdminLogin = async (req, res) => {
 };
 
 
-
-
 // Controller function for super admin logout
 exports.superAdminLogout = async (req, res) => {
     try {
@@ -259,6 +259,25 @@ exports.superAdminLogout = async (req, res) => {
         res.status(500).json({ message: 'Failed to logout super admin', error: error.message });
     }
 };
+
+exports.deleteAccount = async (req, res) => {
+    try {
+        const userId = req.userData.userId;
+
+        // Find and delete the user from the database
+        const user = await User.findOneAndDelete({ userId });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User account deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting user account:', error);
+        res.status(500).json({ message: 'Failed to delete user account', error: error.message });
+    }
+};
+
 
 
 async function sendOTP(email, otp) {

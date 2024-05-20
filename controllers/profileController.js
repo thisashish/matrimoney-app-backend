@@ -76,8 +76,6 @@ exports.searchProfiles = async (req, res) => {
 };
 
 
-
-
 // exports.searchProfiles = async (req, res) => {
 //     try {
 
