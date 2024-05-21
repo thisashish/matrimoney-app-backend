@@ -3,23 +3,20 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const connectRabbitMQ = require('../rabbitmq')
 
-const getPotentialMatches = async (userId) => {
+const getPotentialMatchesByUserId = async (userId) => {
     try {
-        // Get the current user
-        const currentUser = await User.findById(userId);
+        const currentUser = await User.findOne({ userId });
 
         if (!currentUser) {
             throw new Error('User not found');
         }
 
-        // Get the opposite gender
-        const oppositeGender = currentUser.gender === 'male' ? 'female' : 'male';
+        const oppositeGender = currentUser.gender === 'Male' ? 'Female' : 'Male';
 
-        // Find potential matches
         const potentialMatches = await User.find({
-            _id: { $ne: userId }, // Exclude the current user
+            userId: { $ne: userId },
             gender: oppositeGender,
-            'preferences.gender': currentUser.gender, // Match gender preference
+            'preferences.gender': currentUser.gender,
             age: {
                 $gte: currentUser.preferences.ageRange.min,
                 $lte: currentUser.preferences.ageRange.max
@@ -35,15 +32,15 @@ const getPotentialMatches = async (userId) => {
 
 exports.getPotentialMatches = async (req, res) => {
     try {
-        const userId = req.params._id;
-        console.log(userId, 'userId');
-        const potentialMatches = await getPotentialMatches(userId);
+        const userId = req.params.userId;
+        const potentialMatches = await getPotentialMatchesByUserId(userId);
         res.json(potentialMatches);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to fetch potential matches' });
     }
 };
+
 
 
 exports.sendRequest = async (req, res) => {

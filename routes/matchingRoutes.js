@@ -5,7 +5,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 
 // Get potential matches
-router.get('/potential-matches/:_id', authMiddleware, matchingController.getPotentialMatches);
+router.get('/potential-matches/:userId', authMiddleware, matchingController.getPotentialMatches);
 
 // Send request
 router.post('/send-request', authMiddleware, matchingController.sendRequest);
