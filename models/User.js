@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
-
 const PhotoSchema = new mongoose.Schema({
   filename: String,
   originalname: String,
@@ -13,8 +12,6 @@ const PhotoSchema = new mongoose.Schema({
     default: false
   }
 });
-
-
 
 const UserSchema = new mongoose.Schema({
   userId: { type: String, unique: true },
@@ -40,22 +37,17 @@ const UserSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: function (value) {
-
         return value === this.password;
       },
       message: 'Password and confirm password do not match'
     }
   },
-
   gender: {
-
     type: String,
     enum: ['Male', 'Female'],
     // required:true
   },
   dateOfBirth: Date,
-
-  // Calculate age based on date of birth
   age: {
     type: Number,
     default: function () {
@@ -65,8 +57,6 @@ const UserSchema = new mongoose.Schema({
       return Math.abs(ageDate.getUTCFullYear() - 1970);
     }
   },
-
-  // Format date of birth to make it more readable
   formattedDateOfBirth: {
     type: String,
     default: function () {
@@ -75,8 +65,6 @@ const UserSchema = new mongoose.Schema({
       return this.dateOfBirth.toLocaleDateString('en-US', options);
     }
   },
-
-
   preferences: {
     ageRange: {
       min: Number,
@@ -94,9 +82,7 @@ const UserSchema = new mongoose.Schema({
   },
   photos: [PhotoSchema],
   profileVisitors: [{ type: String, ref: 'User' }],
-  
   status: { type: String, enum: ['active', 'blocked', 'inactive'], default: 'active' },
-
   bio: {
     type: String,
   },
@@ -106,12 +92,10 @@ const UserSchema = new mongoose.Schema({
   },
   religion: {
     type: String,
-
   },
   height: Number,
   motherTongue: {
     type: String,
-
   },
   community: {
     type: String,
@@ -124,24 +108,29 @@ const UserSchema = new mongoose.Schema({
   college: String,
   jobTitle: String,
   companyName: String,
-  salary: Number,
+  salary: {
+    type: Number,
+    validate: {
+      validator: function(value) {
+        // Validate that the value is a number and not NaN
+        return typeof value === 'number' && !isNaN(value);
+      },
+      message: 'Salary must be a valid number'
+    }
+  },
   foodPreference: String,
   smoke: {
     type: String,
-    // enum: ['Never', 'Socially', 'Ragularly', 'Planning to quit']
   },
   drink: {
     type: String,
   },
-
   sentRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   receivedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   acceptedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   declinedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Notification' }],
-  
   blockedUsers: [String],
-
   interactedUsers: { type: [String], default: [] },
   dailyRequestCount: { type: Number, default: 0 },
   lastRequestDate: { type: Date, default: Date.now },
@@ -152,8 +141,6 @@ const UserSchema = new mongoose.Schema({
     default: false
   },
 });
-
-
 
 UserSchema.pre('save', async function (next) {
   const user = this;
@@ -182,14 +169,10 @@ UserSchema.pre('save', async function (next) {
   }
 });
 
-
-
-// Function to generate unique ID using email
 function generateUniqueId(email) {
   const hash = crypto.createHash('sha256').update(email).digest('hex');
   return hash.substring(0, 8);
 }
-
 
 const User = mongoose.model('User', UserSchema);
 

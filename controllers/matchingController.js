@@ -5,42 +5,57 @@ const connectRabbitMQ = require('../rabbitmq')
 
 const getPotentialMatchesByUserId = async (userId) => {
     try {
-        const currentUser = await User.findOne({ userId });
-
-        if (!currentUser) {
-            throw new Error('User not found');
-        }
-
-        const oppositeGender = currentUser.gender === 'Male' ? 'Female' : 'Male';
-
-        const potentialMatches = await User.find({
-            userId: { $ne: userId },
-            gender: oppositeGender,
-            'preferences.gender': currentUser.gender,
-            age: {
-                $gte: currentUser.preferences.ageRange.min,
-                $lte: currentUser.preferences.ageRange.max
-            }
-        });
-
-        return potentialMatches;
+      const currentUser = await User.findOne({ userId });
+      console.log(currentUser,"currentUser");
+  
+      if (!currentUser) {
+        throw new Error('User not found');
+      }
+  
+      const oppositeGender = currentUser.gender === 'Male' ? 'Female' : 'Male';
+      console.log(oppositeGender,"oppositeGender");
+  
+      const potentialMatches = await User.find({
+        userId: { $ne: userId },
+        gender: oppositeGender,
+        // 'preferences.gender': currentUser.gender,
+        // age: {
+        //   $gte: currentUser.preferences.ageRange.min,
+        //   $lte: currentUser.preferences.ageRange.max
+        // },
+        maritalStatus: currentUser.maritalStatus, 
+        // religion: currentUser.religion, // Match religion
+        // motherTongue: currentUser.motherTongue, // Match mother tongue
+        // community: currentUser.community, // Match community
+        // settleDown: currentUser.settleDown, // Match settle down preference
+        // homeTown: currentUser.homeTown, // Match hometown
+        // highestQualification: currentUser.highestQualification, 
+        // college: currentUser.college, // Match college
+        // jobTitle: currentUser.jobTitle, // Match job title
+        // companyName: currentUser.companyName, // Match company name
+        salary: { $gte: currentUser.salary - 5000, $lte: currentUser.salary + 5000 } // Match salary within a range
+      });
+      console.log(potentialMatches,"potentialMatchesjhhhhhhhhhhhhhhhh");
+  
+      return potentialMatches;
     } catch (error) {
-        console.error('Error finding potential matches:', error);
-        throw error;
+      console.error('Error finding potential matches:', error);
+      throw error;
     }
-};
-
-exports.getPotentialMatches = async (req, res) => {
+  };
+  
+  exports.getPotentialMatches =async (req, res) => {
     try {
-        const userId = req.params.userId;
-        const potentialMatches = await getPotentialMatchesByUserId(userId);
-        res.json(potentialMatches);
+      const userId = req.params.userId;
+      console.log('xxxxxxxxxxxxxxxxxxxx',userId);
+      const potentialMatches = await getPotentialMatchesByUserId(userId);
+      console.log(potentialMatches,"potentialMatches");
+      res.json(potentialMatches);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Failed to fetch potential matches' });
+      console.error(error);
+      res.status(500).json({ message: 'Failed to fetch potential matches' });
     }
-};
-
+  };
 
 
 exports.sendRequest = async (req, res) => {
@@ -99,6 +114,8 @@ exports.sendRequest = async (req, res) => {
         res.status(500).json({ message: 'Failed to send request' });
     }
 };
+
+
 
 
 exports.getSentRequests = async (req, res) => {
