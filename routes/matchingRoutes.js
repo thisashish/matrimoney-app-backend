@@ -22,8 +22,10 @@ router.post('/accept-request', authMiddleware, matchingController.acceptRequest)
 // Get users who accepted requests
 router.get('/accepted-requests/:userId', authMiddleware, matchingController.getAcceptedRequests);
 
+router.get('/sent-requests/:userId', authMiddleware, matchingController.getSentRequests);
 
 module.exports = router;
+
 
 
 

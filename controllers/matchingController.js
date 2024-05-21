@@ -1,5 +1,7 @@
 const Message = require('../models/Message');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
+const connectRabbitMQ = require('../rabbitmq')
 
 const getPotentialMatches = async (userId) => {
     try {
@@ -43,6 +45,7 @@ exports.getPotentialMatches = async (req, res) => {
     }
 };
 
+
 exports.sendRequest = async (req, res) => {
     try {
         const { _id, targetId } = req.body;
@@ -68,8 +71,30 @@ exports.sendRequest = async (req, res) => {
             receiver: targetId,
             message: customMessage
         });
-        console.log(newMessage, 'newMessage');
         await newMessage.save();
+
+        // Create a notification for the receiver
+        const newNotification = new Notification({
+            userId: targetId,
+            message: `User ${_id} sent you a request.`
+        });
+        await newNotification.save();
+
+        // Add the notification to the receiver's notifications
+        await User.findByIdAndUpdate(targetId, { $push: { notifications: newNotification._id } });
+
+        // Send a message to RabbitMQ
+        const { channel } = await connectRabbitMQ();
+        const queue = 'user_requests';
+        const msg = JSON.stringify({
+            sender: _id,
+            receiver: targetId,
+            message: customMessage
+        });
+
+        await channel.assertQueue(queue, { durable: false });
+        channel.sendToQueue(queue, Buffer.from(msg));
+        console.log('Sent message to RabbitMQ:', msg);
 
         res.json({ message: 'Request sent successfully' });
     } catch (error) {
@@ -77,6 +102,59 @@ exports.sendRequest = async (req, res) => {
         res.status(500).json({ message: 'Failed to send request' });
     }
 };
+
+
+exports.getSentRequests = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        // Find the current user and populate sentRequests
+        const currentUser = await User.findOne({ userId }).populate('sentRequests');
+        
+        if (!currentUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Get the list of users to whom the current user has sent requests
+        const sentRequests = currentUser.sentRequests;
+       
+
+        res.json(sentRequests);
+    } catch (error) {
+        console.error('Error fetching sent requests:', error);
+        res.status(500).json({ message: 'Failed to fetch sent requests' });
+    }
+};
+
+
+
+exports.receiveRequest = async (req, res) => {
+    try {
+        const userId = req.userData.userId;
+
+        const user = await User.findOne({ userId }).populate('receivedRequests');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Create a notification for the user
+        const newNotification = new Notification({
+            userId: user._id,
+            message: `You have received new requests.`
+        });
+        await newNotification.save();
+
+        // Add the notification to the user's notifications
+        await User.findByIdAndUpdate(user._id, { $push: { notifications: newNotification._id } });
+
+        res.json({ receivedRequests: user.receivedRequests });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Failed to fetch received requests', error: error.message });
+    }
+};
+
 
 exports.acceptRequest = async (req, res) => {
     try {
@@ -113,22 +191,7 @@ exports.acceptRequest = async (req, res) => {
     }
 };
 
-exports.receiveRequest = async (req, res) => {
-    try {
-        const userId = req.userData.userId;
 
-        const user = await User.findOne({ userId }).populate('receivedRequests');
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.json({ receivedRequests: user.receivedRequests });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: 'Failed to fetch received requests', error: error.message });
-    }
-
-};
 
 exports.declineRequest = async (req, res) => {
     try {

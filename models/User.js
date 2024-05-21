@@ -50,7 +50,8 @@ const UserSchema = new mongoose.Schema({
   gender: {
 
     type: String,
-    // enum: ['Male', 'Female']
+    enum: ['Male', 'Female'],
+    required:true
   },
   dateOfBirth: Date,
 
@@ -137,7 +138,8 @@ const UserSchema = new mongoose.Schema({
   receivedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   acceptedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   declinedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-
+  notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Notification' }],
+  
   blockedUsers: [String],
 
   interactedUsers: { type: [String], default: [] },
