@@ -4,7 +4,7 @@ const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
 
-const { connectRabbitMQ } = require('./utils/rabbitmq');
+// const { connectRabbitMQ } = require('./utils/rabbitmq');
 const { initializeSocket } = require('./utils/socket');
 
 const authRoutes = require('./routes/authRoutes');
@@ -54,7 +54,7 @@ app.use((req, res, next) => {
 
 // Connect to MongoDB
 connectDB();
-connectRabbitMQ();
+// connectRabbitMQ();
 initializeSocket(server);
 
 // Middleware
