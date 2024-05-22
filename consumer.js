@@ -1,26 +1,30 @@
-// consumer.js
-const amqp = require('amqplib');
+const amqp = require('amqplib/callback_api');
+const connectDB = require('./utils/db');
+const Message = require('./models/Message');
 
-const consumeMessages = async () => {
-    try {
-        const connection = await amqp.connect('amqp://localhost');
-        const channel = await connection.createChannel();
-        const queue = 'user_requests';
-
-        await channel.assertQueue(queue, { durable: false });
-        console.log(`Waiting for messages in queue: ${queue}`);
-
-        channel.consume(queue, (msg) => {
-            if (msg !== null) {
-                const content = msg.content.toString();
-                console.log('Received message:', content);
-                // Process the message as needed
-                channel.ack(msg);
+// Connect to MongoDB
+connectDB().then(() => {
+    amqp.connect('amqp://localhost', (error0, connection) => {
+        if (error0) {
+            throw error0;
+        }
+        connection.createChannel((error1, channel) => {
+            if (error1) {
+                throw error1;
             }
-        });
-    } catch (error) {
-        console.error('Failed to consume messages from RabbitMQ', error);
-    }
-};
+            const queue = 'messageQueue';
+            channel.assertQueue(queue, { durable: false });
 
-consumeMessages();
+            channel.consume(queue, async (msg) => {
+                if (msg !== null) {
+                    const messageData = JSON.parse(msg.content.toString());
+                    const newMessage = new Message(messageData);
+                    await newMessage.save();
+                    channel.ack(msg);
+                }
+            });
+        });
+    });
+}).catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
+});

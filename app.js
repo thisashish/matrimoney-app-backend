@@ -1,10 +1,11 @@
-// app.js
 const express = require('express');
-const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
+
+const { connectRabbitMQ } = require('./utils/rabbitmq');
+const { initializeSocket } = require('./utils/socket');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -16,9 +17,10 @@ const superadminRoutes = require('./routes/super-adminRoutes');
 const collegeList = require('./routes/user/collegeList');
 const jobtitle = require('./routes/user/jobtitle');
 const userQualification = require('./routes/user/qualification');
-const checkBlockedStatus = require('./middleware/checkBlockedStatus');
 const paymentRoutes = require('./routes/paymentRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
+
+const connectDB = require('./utils/db'); // Import the shared connection module
 
 require('dotenv').config();
 
@@ -26,15 +28,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const server = http.createServer(app);
-const io = socketIo(server);
+// Connect to RabbitMQ
+
+// const io = socketIo(server);
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-  // useNewUrlParser: true,
-  // useUnifiedTopology: true
-}).then(() => {
-  console.log('MongoDB connected');
-}).catch(err => console.log(err));
+connectDB();
+connectRabbitMQ();
+initializeSocket(server);
 
 // Middleware
 app.use(cors());
@@ -52,7 +53,6 @@ app.use(
 // For parsing application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 
-
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/photos', photoRoutes);
@@ -66,26 +66,40 @@ app.use('/api/qualification', userQualification);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/user', recommendationRoutes);
 
-
 // Serve uploaded photos statically
 app.use('/uploads', express.static('uploads'));
 
 // Socket.IO integration
-io.on('connection', (socket) => {
-  console.log('New client connected');
+// io.on('connection', (socket) => {
+//   console.log('New client connected');
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
-  });
+//   socket.on('disconnect', () => {
+//     console.log('Client disconnected');
+//   });
 
-  socket.on('newMessage', (message) => {
-    console.log('New message:', message);
-    // Broadcast the message to all connected clients
-    io.emit('newMessage', message);
-  });
+//   socket.on('newMessage', (message) => {
+//     console.log('New message:', message);
+//     // Broadcast the message to all connected clients
+//     io.emit('newMessage', message);
+//   });
+// });
+
+// Ensure indexes are created
+const Message = require('./models/Message');
+Message.createIndexes();
+
+const cron = require('node-cron');
+const chatController = require('./controllers/chatController');
+// Schedule the deleteOldMessages task to run every day at midnight
+cron.schedule('0 0 * * *', async () => {
+  try {
+      await chatController.deleteOldMessages();
+  } catch (error) {
+      console.error('Error running scheduled deleteOldMessages task:', error);
+  }
 });
 
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

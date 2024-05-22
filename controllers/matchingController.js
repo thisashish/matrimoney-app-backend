@@ -1,7 +1,7 @@
 const Message = require('../models/Message');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
-const connectRabbitMQ = require('../rabbitmq')
+const connectRabbitMQ = require('../utils/rabbitmq')
 
 const getPotentialMatchesByUserId = async (userId) => {
     try {
