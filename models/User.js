@@ -140,7 +140,17 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  scrollPosition: {
+    type: String,
+    default: 'top',
+    enum: ['top', 'sent', 'other'] 
+  },
+  lastOnline: { type: Date, default: Date.now },
+  online: { type: Boolean, default: false },
 });
+
+
+UserSchema.index({ scrollPosition: 1 });
 
 UserSchema.pre('save', async function (next) {
   const user = this;

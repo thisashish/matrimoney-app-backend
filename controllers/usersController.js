@@ -123,17 +123,6 @@ exports.getOppositeGenderUsers = async (req, res) => {
     }
 };
 
-const resetDailyRequestCountIfNewDay = async (user) => {
-    const today = moment().startOf('day');
-    const lastRequestDate = moment(user.lastRequestDate).startOf('day');
-
-    if (!lastRequestDate.isSame(today)) {
-        user.dailyRequestCount = 0;
-        user.lastRequestDate = new Date();
-        await user.save();
-    }
-};
-
 
 exports.blockUser = async (req, res) => {
     const userIdToBlock = req.params.userId;

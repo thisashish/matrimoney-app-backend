@@ -20,7 +20,7 @@ const userQualification = require('./routes/user/qualification');
 const paymentRoutes = require('./routes/paymentRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 
-const connectDB = require('./utils/db'); // Import the shared connection module
+const connectDB = require('./utils/db'); 
 
 require('dotenv').config();
 
@@ -31,6 +31,26 @@ const server = http.createServer(app);
 // Connect to RabbitMQ
 
 // const io = socketIo(server);
+
+// Middleware to update online status
+app.use((req, res, next) => {
+  if (req.user) {
+    const onlineThreshold = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const currentTime = new Date();
+    
+    // Check if the user's last online time is within the online threshold
+    const isOnline = (currentTime - req.user.lastOnline) <= onlineThreshold;
+
+    // Update the online status based on activity within the threshold
+    User.findByIdAndUpdate(req.user._id, { online: isOnline, lastOnline: currentTime }, (err, user) => {
+      if (err) {
+        console.error('Error updating online status:', err);
+      }
+    });
+  }
+  next();
+});
+
 
 // Connect to MongoDB
 connectDB();

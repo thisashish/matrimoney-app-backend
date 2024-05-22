@@ -24,6 +24,9 @@ router.get('/accepted-requests/:userId', authMiddleware, matchingController.getA
 
 router.get('/sent-requests/:userId', authMiddleware, matchingController.getSentRequests);
 
+// Handle scrolling and switch to sent section
+router.post('/scroll-to-sent-section/:userId', authMiddleware, matchingController.scrollToSentSection);
+
 module.exports = router;
 
 

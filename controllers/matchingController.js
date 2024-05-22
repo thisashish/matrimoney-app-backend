@@ -253,3 +253,34 @@ exports.getAcceptedRequests = async (req, res) => {
     }
 };
 
+
+exports.scrollToSentSection = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Retrieve the current scroll position of the user from the database
+    const user = await User.findOne({userId});
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if the user is already in the sent section
+    if (user.scrollPosition === 'sent') {
+      // If the user is already in the sent section, no action is needed
+      return res.status(200).json({ message: 'Already in the sent section' });
+    } else {
+      // If the user is not in the sent section, update the scroll position to 'sent'
+      user.scrollPosition = 'sent';
+      await user.save();
+
+      // Send response indicating success
+      return res.status(200).json({ message: 'Successfully scrolled to sent section' });
+    }
+  } catch (error) {
+    console.error('Error scrolling to sent section:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
