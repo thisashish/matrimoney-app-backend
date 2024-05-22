@@ -96,17 +96,17 @@ exports.sendRequest = async (req, res) => {
         await User.findByIdAndUpdate(targetId, { $push: { notifications: newNotification._id } });
 
         // Send a message to RabbitMQ
-        const { channel } = await connectRabbitMQ();
-        const queue = 'user_requests';
-        const msg = JSON.stringify({
-            sender: _id,
-            receiver: targetId,
-            message: customMessage
-        });
+        // const { channel } = await connectRabbitMQ();
+        // const queue = 'user_requests';
+        // const msg = JSON.stringify({
+        //     sender: _id,
+        //     receiver: targetId,
+        //     message: customMessage
+        // });
 
-        await channel.assertQueue(queue, { durable: false });
-        channel.sendToQueue(queue, Buffer.from(msg));
-        console.log('Sent message to RabbitMQ:', msg);
+        // await channel.assertQueue(queue, { durable: false });
+        // channel.sendToQueue(queue, Buffer.from(msg));
+        // console.log('Sent message to RabbitMQ:', msg);
 
         res.json({ message: 'Request sent successfully' });
     } catch (error) {
