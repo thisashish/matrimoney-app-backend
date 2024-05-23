@@ -58,7 +58,7 @@ const getPotentialMatchesByUserId = async (userId) => {
   };
 
 
-exports.sendRequest = async (req, res) => {
+  exports.sendRequest = async (req, res) => {
     try {
         const { _id, targetId } = req.body;
 
@@ -94,19 +94,6 @@ exports.sendRequest = async (req, res) => {
 
         // Add the notification to the receiver's notifications
         await User.findByIdAndUpdate(targetId, { $push: { notifications: newNotification._id } });
-
-        // Send a message to RabbitMQ
-        // const { channel } = await connectRabbitMQ();
-        // const queue = 'user_requests';
-        // const msg = JSON.stringify({
-        //     sender: _id,
-        //     receiver: targetId,
-        //     message: customMessage
-        // });
-
-        // await channel.assertQueue(queue, { durable: false });
-        // channel.sendToQueue(queue, Buffer.from(msg));
-        // console.log('Sent message to RabbitMQ:', msg);
 
         res.json({ message: 'Request sent successfully' });
     } catch (error) {
@@ -208,26 +195,26 @@ exports.acceptRequest = async (req, res) => {
 
 
 exports.declineRequest = async (req, res) => {
-    try {
-        const { _id, targetId } = req.body;
+  try {
+      const { _id, targetId } = req.body;
 
-        // Remove the request from receiver's receivedRequests field
-        await User.findByIdAndUpdate(_id, { $pull: { receivedRequests: targetId } });
+      // Remove the request from receiver's receivedRequests field
+      await User.findByIdAndUpdate(_id, { $pull: { receivedRequests: targetId } });
 
-        // Remove the declined request from sender's sentRequests
-        await User.findByIdAndUpdate(targetId, { $pull: { sentRequests: _id } });
+      // Remove the declined request from sender's sentRequests
+      await User.findByIdAndUpdate(targetId, { $pull: { sentRequests: _id } });
 
-        // Check if declinedRequests field exists, if not, create it
-        await User.findByIdAndUpdate(_id, { $setOnInsert: { declinedRequests: [] } }, { upsert: true });
+      // Check if declinedRequests field exists, if not, create it
+      await User.findByIdAndUpdate(_id, { $setOnInsert: { declinedRequests: [] } }, { upsert: true });
 
-        // Add the declined request to receiver's declinedRequests
-        await User.findByIdAndUpdate(_id, { $push: { declinedRequests: targetId } });
+      // Add the declined request to receiver's declinedRequests
+      await User.findByIdAndUpdate(_id, { $push: { declinedRequests: targetId } });
 
-        res.json({ message: 'Request declined successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Failed to decline request' });
-    }
+      res.json({ message: 'Request declined successfully' });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Failed to decline request' });
+  }
 };
 
 

@@ -112,8 +112,13 @@ exports.getOppositeGenderUsers = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Find users with opposite gender and who have not blocked the current user
-        let oppositeGenderUsers = await User.find({ gender: { $ne: user.gender }, blockedUsers: { $nin: [userId] } });
+        // Find users with opposite gender and who have not blocked the current user and who haven't received or sent requests from/to the current user
+        let oppositeGenderUsers = await User.find({
+            gender: { $ne: user.gender },
+            blockedUsers: { $nin: [userId] },
+            receivedRequests: { $nin: [userId] },
+            sentRequests: { $nin: [userId] }
+        });
 
         // Return opposite gender users
         res.status(200).json({ oppositeGenderUsers });
@@ -123,6 +128,31 @@ exports.getOppositeGenderUsers = async (req, res) => {
     }
 };
 
+exports.getMatches = async (req, res) => {
+    const userId = req.userData.userId;
+    const lastViewedProfileIndex = req.lastViewedProfileIndex;
+
+    try {
+        const user = await User.findOne({ userId });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        let oppositeGenderUsers = await User.find({
+            gender: { $ne: user.gender },
+            blockedUsers: { $nin: [userId] },
+            receivedRequests: { $nin: [userId] },
+            sentRequests: { $nin: [userId] }
+        });
+
+        const matches = oppositeGenderUsers.slice(lastViewedProfileIndex);
+
+        res.status(200).json({ matches });
+    } catch (error) {
+        console.error('Error retrieving matches:', error);
+        res.status(500).json({ message: 'Failed to retrieve matches', error: error.message });
+    }
+};
 
 exports.blockUser = async (req, res) => {
     const userIdToBlock = req.params.userId;

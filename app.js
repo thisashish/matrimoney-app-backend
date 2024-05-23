@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
+const session = require('express-session');
 
 // const { connectRabbitMQ } = require('./utils/rabbitmq');
 const { initializeSocket } = require('./utils/socket');
@@ -69,6 +70,12 @@ app.use(
     extended: true,
   })
 );
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true
+}));
 
 // For parsing application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
