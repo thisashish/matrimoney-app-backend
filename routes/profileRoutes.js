@@ -10,10 +10,10 @@ const User = require('../models/User');
 // router.post('/create-profile', profileController.createProfile);
 router.post('/:_id/update-profile', profileController.updateProfile);
 
-router.get('/search',authenticateUser, profileController.searchProfiles);
-router.get('/searchByUserId',authenticateUser, profileController.searchProfileByUserId);
+router.get('/search', authenticateUser, profileController.searchProfiles);
+router.get('/searchByUserId', authenticateUser, profileController.searchProfileByUserId);
 
-// Route to fetch profile visitors
+// Route to fetch specific profile visitor
 router.get('/:userId/profile-visitors', authenticateUser, getProfileVisitors, async (req, res) => {
     try {
         // Get the userId from request parameters
@@ -30,8 +30,12 @@ router.get('/:userId/profile-visitors', authenticateUser, getProfileVisitors, as
     }
 });
 
+// Route to fetch all profile visitors
 router.get('/profile-visitors', authenticateUser, async (req, res) => {
     try {
+        // Get the authenticated user's ID
+        const authenticatedUserId = req.userData.userId;
+
         // Fetch all users
         const users = await User.find({});
 
@@ -43,8 +47,11 @@ router.get('/profile-visitors', authenticateUser, async (req, res) => {
             allProfileVisitors.push(...user.profileVisitors);
         });
 
+        // Filter out the authenticated user's own ID from the profile visitors
+        const filteredProfileVisitors = allProfileVisitors.filter(visitorId => visitorId !== authenticatedUserId);
+
         // Send the profile visitors data as a response
-        res.status(200).json({ profileVisitors: allProfileVisitors });
+        res.status(200).json({ profileVisitors: filteredProfileVisitors });
     } catch (error) {
         console.error('Error fetching profile visitors:', error);
         res.status(500).json({ message: 'Failed to fetch profile visitors', error: error.message });
@@ -72,3 +79,5 @@ router.get('/:userId', authenticateUser, updateProfileVisitors, async (req, res)
 
 
 module.exports = router;
+
+
