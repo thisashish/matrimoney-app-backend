@@ -4,6 +4,7 @@ const User = require('../models/User');
 const moment = require('moment');
 const axios = require('axios');
 const { GEOCODING_API_URL, API_KEY } = require('../config/config');
+const mongoose = require('mongoose');
 
 exports.enterAdditionalInfo = async (req, res) => {
     const { firstName, lastName, gender, dateOfBirth } = req.body;
@@ -99,34 +100,33 @@ exports.getAdditionalInfo = async (req, res) => {
 };
 
 
-
-
 exports.getOppositeGenderUsers = async (req, res) => {
     const userId = req.userData.userId;
     console.log(userId, 'userid');
 
     try {
-        // Find the user by ID
         const user = await User.findOne({ userId });
         if (!user) {
+           
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Find users with opposite gender and who have not blocked the current user and who haven't received or sent requests from/to the current user
+        const userIdObject = new mongoose.Types.ObjectId(user._id);
+
         let oppositeGenderUsers = await User.find({
             gender: { $ne: user.gender },
-            blockedUsers: { $nin: [userId] },
-            receivedRequests: { $nin: [userId] },
-            sentRequests: { $nin: [userId] }
+            blockedUsers: { $nin: [userIdObject] },
+            receivedRequests: { $nin: [userIdObject] },
+            sentRequests: { $nin: [userIdObject] }
         });
 
-        // Return opposite gender users
         res.status(200).json({ oppositeGenderUsers });
     } catch (error) {
         console.error('Error retrieving opposite gender users:', error);
         res.status(500).json({ message: 'Failed to retrieve opposite gender users', error: error.message });
     }
 };
+
 
 exports.getMatches = async (req, res) => {
     const userId = req.userData.userId;
