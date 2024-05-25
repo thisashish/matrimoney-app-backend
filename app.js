@@ -2,10 +2,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const http = require('http');
-const socketIo = require('socket.io');
 const session = require('express-session');
 
-const { connectRabbitMQ } = require('./utils/rabbitmq');
+// const { connectRabbitMQ } = require('./utils/rabbitmq');
 const { initializeSocket } = require('./utils/socket');
 
 const authRoutes = require('./routes/authRoutes');
@@ -29,9 +28,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const server = http.createServer(app);
-// Connect to RabbitMQ
-
-// const io = socketIo(server);
 
 // Middleware to update online status
 app.use((req, res, next) => {
@@ -55,7 +51,7 @@ app.use((req, res, next) => {
 
 // Connect to MongoDB
 connectDB();
-connectRabbitMQ();
+// connectRabbitMQ();
 initializeSocket(server);
 
 // Middleware
@@ -95,22 +91,6 @@ app.use('/api/user', recommendationRoutes);
 
 // Serve uploaded photos statically
 app.use('/uploads', express.static('uploads'));
-
-
-// Socket.IO integration
-// io.on('connection', (socket) => {
-//   console.log('New client connected');
-
-//   socket.on('disconnect', () => {
-//     console.log('Client disconnected');
-//   });
-
-//   socket.on('newMessage', (message) => {
-//     console.log('New message:', message);
-//     // Broadcast the message to all connected clients
-//     io.emit('newMessage', message);
-//   });
-// });
 
 // Ensure indexes are created
 const Message = require('./models/Message');
