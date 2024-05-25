@@ -5,7 +5,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const session = require('express-session');
 
-// const { connectRabbitMQ } = require('./utils/rabbitmq');
+const { connectRabbitMQ } = require('./utils/rabbitmq');
 const { initializeSocket } = require('./utils/socket');
 
 const authRoutes = require('./routes/authRoutes');
@@ -21,7 +21,7 @@ const userQualification = require('./routes/user/qualification');
 const paymentRoutes = require('./routes/paymentRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 
-const connectDB = require('./utils/db'); 
+const connectDB = require('./utils/db');
 
 require('dotenv').config();
 
@@ -38,7 +38,7 @@ app.use((req, res, next) => {
   if (req.user) {
     const onlineThreshold = 5 * 60 * 1000; // 5 minutes in milliseconds
     const currentTime = new Date();
-    
+
     // Check if the user's last online time is within the online threshold
     const isOnline = (currentTime - req.user.lastOnline) <= onlineThreshold;
 
@@ -55,7 +55,7 @@ app.use((req, res, next) => {
 
 // Connect to MongoDB
 connectDB();
-// connectRabbitMQ();
+connectRabbitMQ();
 initializeSocket(server);
 
 // Middleware
@@ -96,6 +96,7 @@ app.use('/api/user', recommendationRoutes);
 // Serve uploaded photos statically
 app.use('/uploads', express.static('uploads'));
 
+
 // Socket.IO integration
 // io.on('connection', (socket) => {
 //   console.log('New client connected');
@@ -120,9 +121,9 @@ const chatController = require('./controllers/chatController');
 // Schedule the deleteOldMessages task to run every day at midnight
 cron.schedule('0 0 * * *', async () => {
   try {
-      await chatController.deleteOldMessages();
+    await chatController.deleteOldMessages();
   } catch (error) {
-      console.error('Error running scheduled deleteOldMessages task:', error);
+    console.error('Error running scheduled deleteOldMessages task:', error);
   }
 });
 
@@ -130,3 +131,4 @@ cron.schedule('0 0 * * *', async () => {
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
