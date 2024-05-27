@@ -155,16 +155,17 @@ const UserSchema = new mongoose.Schema({
 
 UserSchema.index({ scrollPosition: 1 });
 
+
+
 UserSchema.pre('save', async function (next) {
   const user = this;
-  if (!user.isModified('password') && !user.isModified('confirm_password') && !user.isModified('firstName') && !user.isModified('lastName') && !user.isModified('email')) return next();
+  if (!user.isModified('password')) return next();
 
   try {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(user.password, salt);
-    const confirmHash = await bcrypt.hash(user.confirm_password, salt);
     user.password = passwordHash;
-    user.confirm_password = confirmHash;
+    user.confirm_password = passwordHash;
 
     // Generate unique userId based on email
     const userId = generateUniqueId(user.email);
@@ -181,6 +182,10 @@ UserSchema.pre('save', async function (next) {
     next(error);
   }
 });
+
+UserSchema.methods.comparePassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
 
 function generateUniqueId(email) {
   const hash = crypto.createHash('sha256').update(email).digest('hex');

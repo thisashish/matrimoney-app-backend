@@ -6,7 +6,6 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 const Admin = require('../models/Admin');
 
-
 exports.register = async (req, res) => {
     const { email, password, phone, confirm_password } = req.body;
 
@@ -48,9 +47,7 @@ exports.register = async (req, res) => {
             userId: newUser.userId,
             tokens: [],
             _id: newUser._id
-
         };
-
 
         const token = jwt.sign(
             tokenPayload,
@@ -72,7 +69,6 @@ exports.register = async (req, res) => {
             message: 'User registered successfully',
             token,
             tokenPayload,
-
         };
 
         res.status(201).json({ response });
@@ -82,32 +78,24 @@ exports.register = async (req, res) => {
     }
 };
 
-
 exports.login = async (req, res) => {
     const { email, password } = req.body;
-    const saltRounds = 10; 
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-        console.log('hashedPassword',hashedPassword);
 
     try {
         // Find the user by email
         const user = await User.findOne({ email });
-        console.log(user.password, 'user password');
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        
-        
-
         // Validate password
-        // const isPasswordValid = await bcrypt.compare(hashedPassword, user.password);
-        // console.log(isPasswordValid,'xxxxxxxxxxxxxxxxxxxxxx');
+        const isPasswordValid = await user.comparePassword(password);
+        console.log('ispasssssssssssssssss',isPasswordValid);
 
-        // if (!isPasswordValid) {
-        //     return res.status(401).json({ message: 'Invalid password' });
-        // }
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid password' });
+        }
 
         // Check if the user is blocked
         if (user.status === 'blocked') {
@@ -117,7 +105,7 @@ exports.login = async (req, res) => {
         // Assuming password validation is successful, generate a new token
         const tokenPayload = {
             email: user.email,
-            userId: user._id,
+            userId: user.userId,
         };
 
         const token = jwt.sign(
@@ -136,6 +124,7 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Failed to login user', error: error.message });
     }
 };
+
 
 
 
