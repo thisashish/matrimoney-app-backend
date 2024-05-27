@@ -109,7 +109,7 @@ const UserSchema = new mongoose.Schema({
   jobTitle: String,
   companyName: String,
   salary: {
-    type: Number,
+    type: String,
     // validate: {
     //   validator: function(value) {
     //     // Validate that the value is a number and not NaN
