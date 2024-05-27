@@ -85,21 +85,29 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
     const { email, password } = req.body;
+    const saltRounds = 10; 
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        console.log('hashedPassword',hashedPassword);
 
     try {
         // Find the user by email
         const user = await User.findOne({ email });
+        console.log(user.password, 'user password');
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Validate password
-        // const isPasswordValid = await bcrypt.compare(password, user.password);
+        
+        
 
-        // if (!isPasswordValid) {
-        //     return res.status(401).json({ message: 'Invalid password' });
-        // }
+        // Validate password
+        const isPasswordValid = await bcrypt.compare(hashedPassword, user.password);
+        console.log(isPasswordValid,'xxxxxxxxxxxxxxxxxxxxxx');
+
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid password' });
+        }
 
         // Check if the user is blocked
         if (user.status === 'blocked') {
@@ -109,9 +117,8 @@ exports.login = async (req, res) => {
         // Assuming password validation is successful, generate a new token
         const tokenPayload = {
             email: user.email,
-            userId: user.userId,
+            userId: user._id,
         };
-
 
         const token = jwt.sign(
             tokenPayload,
@@ -129,6 +136,8 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Failed to login user', error: error.message });
     }
 };
+
+
 
 
 
