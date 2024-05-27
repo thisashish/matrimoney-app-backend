@@ -20,7 +20,7 @@ const userQualification = require('./routes/user/qualification');
 const paymentRoutes = require('./routes/paymentRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 
-const connectDB = require('./utils/db');
+const { connectDB } = require('./utils/db');
 
 require('dotenv').config();
 

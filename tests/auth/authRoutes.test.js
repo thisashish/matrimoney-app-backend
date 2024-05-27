@@ -22,10 +22,10 @@ describe('Auth Routes', () => {
             const res = await request(app)
                 .post('/api/auth/register')
                 .send({
-                    email: 'test@example.com',
+                    email: 'meena@example.com',
                     password: 'Password123',
                     confirm_password: 'Password123',
-                    phone: '1234567890'
+                    phone: '12345678'
                 });
 
             expect(res.statusCode).toBe(201);
@@ -36,10 +36,10 @@ describe('Auth Routes', () => {
             const res = await request(app)
                 .post('/api/auth/register')
                 .send({
-                    email: 'test@example.com',
+                    email: 'meena@example.com',
                     password: 'Password123',
-                    confirm_password: 'Password456',
-                    phone: '1234567890'
+                    confirm_password: 'Password8787',
+                    phone: '12345678'
                 });
 
             expect(res.statusCode).toBe(400);
@@ -51,7 +51,7 @@ describe('Auth Routes', () => {
             const res = await request(app)
                 .post('/api/auth/register')
                 .send({
-                    email: 'existing@example.com',
+                    email: 'test@example.com',
                     password: 'Password123',
                     confirm_password: 'Password123',
                     phone: '1234567890'
