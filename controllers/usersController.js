@@ -3,8 +3,11 @@ require('dotenv').config();
 const User = require('../models/User');
 const moment = require('moment');
 const axios = require('axios');
-const { GEOCODING_API_URL, API_KEY } = require('../config/config');
+// const { GEOCODING_API_URL, API_KEY } = require('../config/config');
 const mongoose = require('mongoose');
+const config = require('../config/config');
+
+
 
 exports.enterAdditionalInfo = async (req, res) => {
     const { firstName, lastName, gender, dateOfBirth } = req.body;
@@ -214,30 +217,27 @@ exports.unblockUser = async (req, res) => {
 
 
 // Controller function to find nearby people based on a user's location
-exports.findNearbyPeople = async (req, res) => {
-    try {
-        // Get the user's location from the request body
-        const { address } = req.body;
 
-        // Use Geocoding API to convert address to geographic coordinates (latitude and longitude)
-        const geocodingResponse = await axios.get(GEOCODING_API_URL, {
-            params: {
-                address: address,
-                key: API_KEY
-            }
-        });
+// exports.findNearbyPeople = async (req, res) => {
+//     try {
+//         // Get the user's location from the request body
+//         const { address } = req.body;
 
-        const location = geocodingResponse.data.results[0].geometry.location;
-        const { lat, lng } = location;
+//         // Use Geocoding API URL from config to convert address to geographic coordinates (latitude and longitude)
+//         const geocodingResponse = await axios.get(config.GEOCODING_API_URL(address));
 
-        // Now, you can use the latitude and longitude to find nearby people in your database
-        // For demonstration purposes, we'll just send back the coordinates
-        res.json({ latitude: lat, longitude: lng });
-    } catch (error) {
-        console.error('Error finding nearby people:', error);
-        res.status(500).json({ message: 'Failed to find nearby people' });
-    }
-};
+//         const location = geocodingResponse.data.results[0].geometry.location;
+//         const { lat, lng } = location;
+
+//         // Now, you can use the latitude and longitude to find nearby people in your database
+//         // For demonstration purposes, we'll just send back the coordinates
+//         res.json({ latitude: lat, longitude: lng });
+//     } catch (error) {
+//         console.error('Error finding nearby people:', error);
+//         res.status(500).json({ message: 'Failed to find nearby people' });
+//     }
+// };
+
 
 
 

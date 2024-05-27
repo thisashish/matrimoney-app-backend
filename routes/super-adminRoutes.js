@@ -17,8 +17,6 @@ const superAdminAuthMiddleware = require('../middleware/superAdminAuthMiddleware
 
 const adminsController = require('../controllers/super-adminController');
 
-
-
 // Admin login route
 router.post('/super-admin-login', async (req, res) => {
     const { email, password } = req.body;
@@ -256,8 +254,5 @@ router.put('/update-user-email/:userId', superAdminAuthMiddleware, async (req, r
         res.status(500).json({ message: 'Failed to update user email', error: error.message });
     }
 });
-
-
-
 
 module.exports = router;

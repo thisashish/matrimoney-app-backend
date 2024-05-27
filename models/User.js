@@ -110,13 +110,13 @@ const UserSchema = new mongoose.Schema({
   companyName: String,
   salary: {
     type: Number,
-    validate: {
-      validator: function(value) {
-        // Validate that the value is a number and not NaN
-        return typeof value === 'number' && !isNaN(value);
-      },
-      message: 'Salary must be a valid number'
-    }
+    // validate: {
+    //   validator: function(value) {
+    //     // Validate that the value is a number and not NaN
+    //     return typeof value === 'number' && !isNaN(value);
+    //   },
+    //   message: 'Salary must be a valid number'
+    // }
   },
   foodPreference: String,
   smoke: {

@@ -15,7 +15,8 @@ router.post('/block/:userId', authenticateUser, userController.blockUser);
 
 router.post('/unblock/:userId', authenticateUser, userController.unblockUser);
 
-router.post('/find-nearby-people', userController.findNearbyPeople);
+// router.post('/find-nearby-people', userController.findNearbyPeople);
+
 
 module.exports = router;
 
