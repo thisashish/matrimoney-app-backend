@@ -230,7 +230,7 @@ exports.updateProfileVisitors = async (req, res, next) => {
 exports.updateProfile = async (req, res) => {
     try {
         const userId = req.params._id;
-        const { bio, maritalStatus, religion, motherTongue, community, settleDown, homeTown, highestQualification, college, jobTitle, companyName, salary } = req.body;
+        const { bio, maritalStatus, religion, motherTongue, community, settleDown, homeTown, highestQualification, college, jobTitle, companyName, salary,foodPreference,smoke,drink,height } = req.body;
 
         // Find the user by ID
         const user = await User.findById(userId);
@@ -251,7 +251,10 @@ exports.updateProfile = async (req, res) => {
         user.jobTitle = jobTitle;
         user.companyName = companyName;
         user.salary = salary;
-
+        user.foodPreference = foodPreference;
+        user.smoke = smoke;
+        user.drink = drink;
+        user.height = height;
         // Save updated user profile
         await user.save();
 

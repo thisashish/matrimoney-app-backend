@@ -125,6 +125,9 @@ const UserSchema = new mongoose.Schema({
   drink: {
     type: String,
   },
+  height: {
+    String,
+  },
   sentRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   receivedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   acceptedRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
@@ -143,7 +146,7 @@ const UserSchema = new mongoose.Schema({
   scrollPosition: {
     type: String,
     default: 'top',
-    enum: ['top', 'sent', 'other'] 
+    enum: ['top', 'sent', 'other']
   },
   lastOnline: { type: Date, default: Date.now },
   online: { type: Boolean, default: false },

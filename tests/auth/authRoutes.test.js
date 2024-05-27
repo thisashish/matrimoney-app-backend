@@ -22,10 +22,10 @@ describe('Auth Routes', () => {
             const res = await request(app)
                 .post('/api/auth/register')
                 .send({
-                    email: 'meena@example.com',
+                    email: 'tiya@example.com',
                     password: 'Password123',
                     confirm_password: 'Password123',
-                    phone: '12345678'
+                    phone: '1234567'
                 });
 
             expect(res.statusCode).toBe(201);
@@ -93,7 +93,7 @@ describe('Auth Routes', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: 'test@example.com',
+                    email: 'meena@example.com',
                     password: 'WrongPassword'
                 });
 

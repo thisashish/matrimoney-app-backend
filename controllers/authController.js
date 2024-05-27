@@ -95,11 +95,11 @@ exports.login = async (req, res) => {
         }
 
         // Validate password
-        // const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = await bcrypt.compare(password, user.password);
 
-        // if (!isPasswordValid) {
-        //     return res.status(401).json({ message: 'Invalid password' });
-        // }
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid password' });
+        }
 
         // Check if the user is blocked
         if (user.status === 'blocked') {
