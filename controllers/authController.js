@@ -126,11 +126,6 @@ exports.login = async (req, res) => {
 };
 
 
-
-
-
-
-
 // exports.login = async (req, res) => {
 //     const { email, password } = req.body;
 

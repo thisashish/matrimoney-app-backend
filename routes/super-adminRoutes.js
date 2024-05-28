@@ -237,7 +237,7 @@ router.put('/update-user-email/:userId', superAdminAuthMiddleware, async (req, r
 
     try {
         // Find the user by ID
-        const user = await User.findOne({userId});
+        const user = await User.findOne({ userId });
 
         // Check if user exists
         if (!user) {
@@ -254,5 +254,16 @@ router.put('/update-user-email/:userId', superAdminAuthMiddleware, async (req, r
         res.status(500).json({ message: 'Failed to update user email', error: error.message });
     }
 });
+
+
+// Subscription Plan routes
+// router.post('/plans/create', superAdminController.createSubscriptionPlan);
+// router.put('/plans/update/:planId', superAdminController.updateSubscriptionPlan);
+// router.delete('/plans/delete/:planId', superAdminController.deleteSubscriptionPlan);
+
+// // Coupon routes
+// router.post('/coupons/create', superAdminController.createCoupon);
+// router.put('/coupons/update/:couponId', superAdminController.updateCoupon);
+// router.delete('/coupons/delete/:couponId', superAdminController.deleteCoupon);
 
 module.exports = router;

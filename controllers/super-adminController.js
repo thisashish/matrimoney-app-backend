@@ -1,6 +1,8 @@
 // controllers/adminsController.js
 
 const User = require('../models/User');
+const SubscriptionPlan = require('../models/SubscriptionPlan');
+const Coupon = require('../models/Coupon');
 
 // exports.getAllFemaleUsers = async (req, res) => {
 //     try {
@@ -143,3 +145,99 @@ exports.blockUser = async (req, res) => {
         res.status(500).json({ message: 'Failed to block user', error: error.message });
     }
 };
+
+
+// Controller function to create a new subscription plan
+exports.createSubscriptionPlan = async (req, res) => {
+  const { name, duration, price, coupon } = req.body;
+
+  try {
+    const newPlan = new SubscriptionPlan({ name, duration, price, coupon });
+    await newPlan.save();
+    res.status(201).json({ message: 'Subscription plan created successfully', plan: newPlan });
+  } catch (error) {
+    console.error('Error creating subscription plan:', error);
+    res.status(500).json({ message: 'Failed to create subscription plan', error: error.message });
+  }
+};
+
+// Controller function to update a subscription plan
+exports.updateSubscriptionPlan = async (req, res) => {
+  const { planId } = req.params;
+  const updatedData = req.body;
+
+  try {
+    const updatedPlan = await SubscriptionPlan.findByIdAndUpdate(planId, updatedData, { new: true });
+    if (!updatedPlan) {
+      return res.status(404).json({ message: 'Subscription plan not found' });
+    }
+    res.status(200).json({ message: 'Subscription plan updated successfully', plan: updatedPlan });
+  } catch (error) {
+    console.error('Error updating subscription plan:', error);
+    res.status(500).json({ message: 'Failed to update subscription plan', error: error.message });
+  }
+};
+
+// Controller function to delete a subscription plan
+exports.deleteSubscriptionPlan = async (req, res) => {
+  const { planId } = req.params;
+
+  try {
+    const deletedPlan = await SubscriptionPlan.findByIdAndDelete(planId);
+    if (!deletedPlan) {
+      return res.status(404).json({ message: 'Subscription plan not found' });
+    }
+    res.status(200).json({ message: 'Subscription plan deleted successfully', plan: deletedPlan });
+  } catch (error) {
+    console.error('Error deleting subscription plan:', error);
+    res.status(500).json({ message: 'Failed to delete subscription plan', error: error.message });
+  }
+};
+
+// Controller function to create a new coupon
+exports.createCoupon = async (req, res) => {
+  const { code, discountPercentage, expiryDate } = req.body;
+
+  try {
+    const newCoupon = new Coupon({ code, discountPercentage, expiryDate });
+    await newCoupon.save();
+    res.status(201).json({ message: 'Coupon created successfully', coupon: newCoupon });
+  } catch (error) {
+    console.error('Error creating coupon:', error);
+    res.status(500).json({ message: 'Failed to create coupon', error: error.message });
+  }
+};
+
+// Controller function to update a coupon
+exports.updateCoupon = async (req, res) => {
+  const { couponId } = req.params;
+  const updatedData = req.body;
+
+  try {
+    const updatedCoupon = await Coupon.findByIdAndUpdate(couponId, updatedData, { new: true });
+    if (!updatedCoupon) {
+      return res.status(404).json({ message: 'Coupon not found' });
+    }
+    res.status(200).json({ message: 'Coupon updated successfully', coupon: updatedCoupon });
+  } catch (error) {
+    console.error('Error updating coupon:', error);
+    res.status(500).json({ message: 'Failed to update coupon', error: error.message });
+  }
+};
+
+// Controller function to delete a coupon
+exports.deleteCoupon = async (req, res) => {
+  const { couponId } = req.params;
+
+  try {
+    const deletedCoupon = await Coupon.findByIdAndDelete(couponId);
+    if (!deletedCoupon) {
+      return res.status(404).json({ message: 'Coupon not found' });
+    }
+    res.status(200).json({ message: 'Coupon deleted successfully', coupon: deletedCoupon });
+  } catch (error) {
+    console.error('Error deleting coupon:', error);
+    res.status(500).json({ message: 'Failed to delete coupon', error: error.message });
+  }
+};
+
