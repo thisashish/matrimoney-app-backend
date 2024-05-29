@@ -22,17 +22,77 @@ exports.getProfileVisitors = async (req, res) => {
     }
 };
 
+// exports.searchProfiles = async (req, res) => {
+//     try {
+//         const authenticatedUserId = req.userData.userId;
+        
+//         const { minAge, maxAge, maritalStatus, religion, motherTongue, minSalary, maxSalary } = req.query;
+
+//         // Construct query based on search criteria
+//         const query = {};
+
+//         if (minAge && maxAge) {
+//             query.age = { $gte: minAge, $lte: maxAge };
+//         }
+
+//         if (maritalStatus) {
+//             query.maritalStatus = maritalStatus;
+//         }
+
+//         if (religion) {
+//             query.religion = religion;
+//         }
+
+//         if (motherTongue) {
+//             query.motherTongue = motherTongue;
+//         }
+
+//         if (minSalary && maxSalary) {
+//             const minSalaryValue = parseInt(minSalary);
+//             const maxSalaryValue = parseInt(maxSalary);
+
+//             if (!isNaN(minSalaryValue) && !isNaN(maxSalaryValue)) {
+//                 query.salary = { $gte: minSalaryValue, $lte: maxSalaryValue };
+//             } else {
+//                 throw new Error('Invalid salary values');
+//             }
+//         }
+
+//         // Filter out users who have blocked the authenticated user
+//         query.blockedUsers = { $ne: authenticatedUserId };
+        
+
+//         console.log(query, 'query');
+
+//         // Query the database with the constructed query
+//         const matchingProfiles = await User.find(query);
+        
+
+//         res.status(200).json({ profiles: matchingProfiles });
+//     } catch (error) {
+//         console.error('Error searching profiles:', error);
+//         res.status(500).json({ message: 'Failed to search profiles', error: error.message });
+//     }
+// };
+
 exports.searchProfiles = async (req, res) => {
     try {
         const authenticatedUserId = req.userData.userId;
         
-        const { minAge, maxAge, maritalStatus, religion, motherTongue, minSalary, maxSalary } = req.query;
+        const { minAge, maxAge, maritalStatus, religion, motherTongue, minSalary, maxSalary, minHeight, maxHeight } = req.query;
 
         // Construct query based on search criteria
         const query = {};
 
         if (minAge && maxAge) {
-            query.age = { $gte: minAge, $lte: maxAge };
+            const minAgeValue = parseInt(minAge);
+            const maxAgeValue = parseInt(maxAge);
+
+            if (!isNaN(minAgeValue) && !isNaN(maxAgeValue)) {
+                query.age = { $gte: minAgeValue, $lte: maxAgeValue };
+            } else {
+                throw new Error('Invalid age values');
+            }
         }
 
         if (maritalStatus) {
@@ -58,16 +118,25 @@ exports.searchProfiles = async (req, res) => {
             }
         }
 
+        if (minHeight && maxHeight) {
+            const minHeightValue = parseInt(minHeight);
+            const maxHeightValue = parseInt(maxHeight);
+
+            if (!isNaN(minHeightValue) && !isNaN(maxHeightValue)) {
+                query.height = { $gte: minHeightValue, $lte: maxHeightValue };
+            } else {
+                throw new Error('Invalid height values');
+            }
+        }
+
         // Filter out users who have blocked the authenticated user
         query.blockedUsers = { $ne: authenticatedUserId };
-        
 
         console.log(query, 'query');
 
         // Query the database with the constructed query
         const matchingProfiles = await User.find(query);
         
-
         res.status(200).json({ profiles: matchingProfiles });
     } catch (error) {
         console.error('Error searching profiles:', error);
@@ -76,75 +145,6 @@ exports.searchProfiles = async (req, res) => {
 };
 
 
-// exports.searchProfiles = async (req, res) => {
-//     try {
-
-//         const { minAge, maxAge, maritalStatus, religion, motherTongue, minSalary, maxSalary, country, state } = req.query;
-
-//         // Construct query based on search criteria
-//         const query = {};
-
-
-//         if (minAge && maxAge) {
-//             query.age = { $gte: minAge, $lte: maxAge };
-//         }
-
-
-
-//         // Add height filter if provided
-//         // if (minHeight && maxHeight) {
-//         //     query.height = { $gte: minHeight, $lte: maxHeight };
-//         // }
-
-
-//         if (maritalStatus) {
-//             query.maritalStatus = maritalStatus;
-//         }
-
-
-//         if (religion) {
-//             query.religion = religion;
-//         }
-
-
-//         if (motherTongue) {
-//             query.motherTongue = motherTongue;
-//         }
-
-
-//         if (minSalary && maxSalary) {
-//             const minSalaryValue = parseInt(minSalary);
-//             const maxSalaryValue = parseInt(maxSalary);
-
-//             if (!isNaN(minSalaryValue) && !isNaN(maxSalaryValue)) {
-//                 query.salary = { $gte: minSalaryValue, $lte: maxSalaryValue };
-//             } else {
-//                 throw new Error('Invalid salary values');
-//             }
-//         }
-
-
-
-//         // if (country) {
-//         //     query.country = country;
-//         // }
-
-//         // // Add state filter if provided
-//         // if (state) {
-//         //     query.state = state;
-//         // }
-
-//         console.log(query, 'query');
-
-//         // Query the database with the constructed query
-//         const matchingProfiles = await User.find(query);
-
-//         res.status(200).json({ profiles: matchingProfiles });
-//     } catch (error) {
-//         console.error('Error searching profiles:', error);
-//         res.status(500).json({ message: 'Failed to search profiles', error: error.message });
-//     }
-// };
 
 exports.searchProfileByUserId = async (req, res) => {
     try {
