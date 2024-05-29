@@ -93,7 +93,7 @@ const UserSchema = new mongoose.Schema({
   religion: {
     type: String,
   },
-  height: String,
+  height: Number,
   motherTongue: {
     type: String,
   },
