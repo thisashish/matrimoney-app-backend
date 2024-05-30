@@ -19,8 +19,8 @@ router.post('/decline-request', authMiddleware, matchingController.declineReques
 // Accept request
 router.post('/accept-request', authMiddleware, matchingController.acceptRequest);
 
-// Get users who accepted requests
-router.get('/accepted-requests/:userId', authMiddleware, matchingController.getAcceptedRequests);
+// Get users who accepted requests  :userId
+router.get('/accepted-requests', authMiddleware, matchingController.getAcceptedRequests);
 
 router.get('/sent-requests/:userId', authMiddleware, matchingController.getSentRequests);
 

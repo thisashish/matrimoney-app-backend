@@ -220,7 +220,8 @@ exports.declineRequest = async (req, res) => {
 
 exports.getAcceptedRequests = async (req, res) => {
     try {
-        const userId = req.params.userId;
+        // const userId = req.params.userId;
+        const userId = req.userData.userId;
 
         // Find the current user
         const currentUser = await User.findOne({ userId }).populate('acceptedRequests');

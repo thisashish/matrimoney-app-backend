@@ -6,6 +6,7 @@ const axios = require('axios');
 // const { GEOCODING_API_URL, API_KEY } = require('../config/config');
 const mongoose = require('mongoose');
 const config = require('../config/config');
+const { FormListInstance } = require('twilio/lib/rest/verify/v2/form');
 
 
 
@@ -42,7 +43,7 @@ exports.enterAdditionalInfo = async (req, res) => {
     }
 };
 
-// Function to calculate age based on date of birth
+// Function to calculate age based on date aof birth
 function calculateAge(dateOfBirth) {
     const dob = new Date(dateOfBirth);
     const diff = Date.now() - dob.getTime();
@@ -215,7 +216,6 @@ exports.unblockUser = async (req, res) => {
 };
 
 
-
 // Controller function to find nearby people based on a user's location
 
 // exports.findNearbyPeople = async (req, res) => {
@@ -237,6 +237,7 @@ exports.unblockUser = async (req, res) => {
 //         res.status(500).json({ message: 'Failed to find nearby people' });
 //     }
 // };
+
 
 
 
