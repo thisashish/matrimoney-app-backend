@@ -50,7 +50,7 @@ router.get('/:userId/profile-visitors', authenticateUser, getProfileVisitors, as
 //         // Filter out the authenticated user's own ID from the profile visitors
 //         const filteredProfileVisitors = allProfileVisitors.filter(visitorId => visitorId !== authenticatedUserId);
 
-        
+
 
 
 //         // Send the profile visitors data as a response
@@ -95,41 +95,6 @@ router.get('/profile-visitors', authenticateUser, async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch profile visitors', error: error.message });
     }
 });
-
-
-// router.get('/profile-visitors', authenticateUser, async (req, res) => {
-//     try {
-//         // Get the authenticated user's ID
-//         const authenticatedUserId = req.userData.userId;
-
-//         // Fetch all users
-//         const users = await User.find({});
-
-//         // Initialize an array to store all profile visitors' IDs
-//         let allProfileVisitorIds = [];
-
-//         // Iterate through each user and extract their profile visitors' IDs
-//         users.forEach(user => {
-//             allProfileVisitorIds.push(...user.profileVisitors);
-//         });
-
-//         // Filter out the authenticated user's own ID from the profile visitors' IDs
-//         const filteredProfileVisitorIds = allProfileVisitorIds.filter(visitorId => visitorId !== authenticatedUserId);
-
-//         // Fetch the details of each profile visitor
-//         const profileVisitorsDetails = await Promise.all(
-//             filteredProfileVisitorIds.map(async visitorId => {
-//                 return await User.findOne({visitorId}); // Fetch all details without excluding any fields
-//             })
-//         );
-
-//         // Send the profile visitors data as a response
-//         res.status(200).json({ profileVisitors: profileVisitorsDetails });
-//     } catch (error) {
-//         console.error('Error fetching profile visitors:', error);
-//         res.status(500).json({ message: 'Failed to fetch profile visitors', error: error.message });
-//     }
-// });
 
 // Route to view user's profile
 router.get('/:userId', authenticateUser, updateProfileVisitors, async (req, res) => {

@@ -10,8 +10,11 @@ router.post('/login', authController.login);
 router.post('/logout', authenticateUser, authController.logout);
 router.post('/send-otp', authController.sendOTP);
 router.post('/verify-otp', authenticateUser, authController.verifyOTP);
-router.delete('/delete-account', authenticateUser, authController.deleteAccount);
+// router.delete('/delete-account', authenticateUser, authController.deleteAccount);
 
+// Password reset routes
+router.post('/forgot-password',authenticateUser, authController.forgotPassword);
+router.put('/reset-password',authenticateUser, authController.resetPassword);
 
 // router.get('/profile', authMiddleware, authController.getUserProfile);
 // router.put('/profile', authMiddleware, authController.updateUserProfile);
@@ -39,6 +42,7 @@ router.get('/user-initial-info', authenticateUser, async (req, res) => {
         res.status(500).json({ message: 'Failed to retrieve user data', error: error.message });
     }
 });
+
 
 
 module.exports = router;

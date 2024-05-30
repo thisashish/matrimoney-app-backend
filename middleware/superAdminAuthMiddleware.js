@@ -16,11 +16,11 @@ const superAdminAuthMiddleware = async (req, res, next) => {
         }
 
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("decodedToken ke papa",decodedToken);
+       
         
         // Check if the user is a super admin
         const superAdmin = await SuperAdmin.findById(decodedToken.adminId);
-        console.log("super admin ke papa", superAdmin);
+        
         if (!superAdmin) {
             return res.status(403).json({ success: false, message: "User is not authorized as a super admin." });
         }

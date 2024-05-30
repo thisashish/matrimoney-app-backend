@@ -80,18 +80,24 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
     const { email, password } = req.body;
+    console.log('aaaaaaaaaaaaa', password);
 
     try {
         // Find the user by email
         const user = await User.findOne({ email });
+        console.log(user.password, 'xxxxxxxxxxxxxx');
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
         // Validate password
-        const isPasswordValid = await user.comparePassword(password);
-        console.log('ispasssssssssssssssss',isPasswordValid);
+        // const isPasswordValid = await user.comparePassword(password, user.password);
+        // console.log('ispasssssssssssssssss', isPasswordValid);
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        // Log the comparison result
+        console.log('Password valid:', isPasswordValid);
 
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Invalid password' });
@@ -124,6 +130,7 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Failed to login user', error: error.message });
     }
 };
+
 
 
 // exports.login = async (req, res) => {
@@ -173,6 +180,71 @@ exports.login = async (req, res) => {
 //     }
 // };
 
+async function sendResetEmail(email, token) {
+    const transporter = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Password Reset',
+        text: `Click the following link to reset your password: ${process.env.FRONTEND_URL}/reset-password?token=${token}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+}
+
+exports.forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        await sendResetEmail(email, token);
+
+        res.status(200).json({ message: 'Password reset email sent' });
+    } catch (error) {
+        console.error('Error sending password reset email:', error);
+        res.status(500).json({ message: 'Failed to send password reset email', error: error.message });
+    }
+};
+
+exports.resetPassword = async (req, res) => {
+    const { token, newPassword } = req.body;
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findOne({ userId: decoded.userId });
+
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+
+        // Directly set the confirm_password without validation
+        user.confirm_password = hashedPassword;
+
+        await user.save();
+
+        res.status(200).json({ message: 'Password reset successful' });
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        res.status(500).json({ message: 'Failed to reset password', error: error.message });
+    }
+};
 
 
 exports.logout = async (req, res) => {
@@ -240,6 +312,7 @@ exports.superAdminLogin = async (req, res) => {
 
 
 // Controller function for super admin logout
+
 exports.superAdminLogout = async (req, res) => {
     try {
 

@@ -149,11 +149,15 @@ exports.blockUser = async (req, res) => {
 
 // Controller function to create a new subscription plan
 exports.createSubscriptionPlan = async (req, res) => {
-  const { name, duration, price, coupon } = req.body;
+  const { name, duration, price, couponCode, discountPercentage, expiryDate } = req.body;
 
   try {
+    const coupon = new Coupon({ code: couponCode, discountPercentage, expiryDate });
+    await coupon.save();
+    
     const newPlan = new SubscriptionPlan({ name, duration, price, coupon });
     await newPlan.save();
+    
     res.status(201).json({ message: 'Subscription plan created successfully', plan: newPlan });
   } catch (error) {
     console.error('Error creating subscription plan:', error);
@@ -164,13 +168,28 @@ exports.createSubscriptionPlan = async (req, res) => {
 // Controller function to update a subscription plan
 exports.updateSubscriptionPlan = async (req, res) => {
   const { planId } = req.params;
-  const updatedData = req.body;
+  const { name, duration, price, couponCode, discountPercentage, expiryDate } = req.body;
 
   try {
-    const updatedPlan = await SubscriptionPlan.findByIdAndUpdate(planId, updatedData, { new: true });
+    const updatedPlan = await SubscriptionPlan.findById(planId);
     if (!updatedPlan) {
       return res.status(404).json({ message: 'Subscription plan not found' });
     }
+
+    if (couponCode && discountPercentage && expiryDate) {
+      const updatedCoupon = await Coupon.findById(updatedPlan.coupon._id);
+      updatedCoupon.code = couponCode;
+      updatedCoupon.discountPercentage = discountPercentage;
+      updatedCoupon.expiryDate = expiryDate;
+      await updatedCoupon.save();
+      updatedPlan.coupon = updatedCoupon;
+    }
+
+    updatedPlan.name = name;
+    updatedPlan.duration = duration;
+    updatedPlan.price = price;
+    await updatedPlan.save();
+    
     res.status(200).json({ message: 'Subscription plan updated successfully', plan: updatedPlan });
   } catch (error) {
     console.error('Error updating subscription plan:', error);
@@ -187,10 +206,23 @@ exports.deleteSubscriptionPlan = async (req, res) => {
     if (!deletedPlan) {
       return res.status(404).json({ message: 'Subscription plan not found' });
     }
-    res.status(200).json({ message: 'Subscription plan deleted successfully', plan: deletedPlan });
+    await Coupon.findByIdAndDelete(deletedPlan.coupon._id);
+
+    res.status(200).json({ message: 'Subscription plan and associated coupon deleted successfully', plan: deletedPlan });
   } catch (error) {
     console.error('Error deleting subscription plan:', error);
     res.status(500).json({ message: 'Failed to delete subscription plan', error: error.message });
+  }
+};
+
+// Controller function to list all subscription plans
+exports.listSubscriptionPlans = async (req, res) => {
+  try {
+    const plans = await SubscriptionPlan.find().populate('coupon');
+    res.status(200).json({ plans });
+  } catch (error) {
+    console.error('Error listing subscription plans:', error);
+    res.status(500).json({ message: 'Failed to list subscription plans', error: error.message });
   }
 };
 
@@ -211,10 +243,10 @@ exports.createCoupon = async (req, res) => {
 // Controller function to update a coupon
 exports.updateCoupon = async (req, res) => {
   const { couponId } = req.params;
-  const updatedData = req.body;
+  const { code, discountPercentage, expiryDate } = req.body;
 
   try {
-    const updatedCoupon = await Coupon.findByIdAndUpdate(couponId, updatedData, { new: true });
+    const updatedCoupon = await Coupon.findByIdAndUpdate(couponId, { code, discountPercentage, expiryDate }, { new: true });
     if (!updatedCoupon) {
       return res.status(404).json({ message: 'Coupon not found' });
     }
@@ -240,4 +272,3 @@ exports.deleteCoupon = async (req, res) => {
     res.status(500).json({ message: 'Failed to delete coupon', error: error.message });
   }
 };
-

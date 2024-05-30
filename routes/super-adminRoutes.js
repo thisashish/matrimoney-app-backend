@@ -256,14 +256,14 @@ router.put('/update-user-email/:userId', superAdminAuthMiddleware, async (req, r
 });
 
 
-// Subscription Plan routes
-// router.post('/plans/create', superAdminController.createSubscriptionPlan);
-// router.put('/plans/update/:planId', superAdminController.updateSubscriptionPlan);
-// router.delete('/plans/delete/:planId', superAdminController.deleteSubscriptionPlan);
+router.post('/plans/create',superAdminAuthMiddleware, adminsController.createSubscriptionPlan);
+router.put('/plans/update/:planId',superAdminAuthMiddleware, adminsController.updateSubscriptionPlan);
+router.delete('/plans/delete/:planId',superAdminAuthMiddleware, adminsController.deleteSubscriptionPlan);
+router.get('/plans',superAdminAuthMiddleware, adminsController.listSubscriptionPlans);
 
-// // Coupon routes
-// router.post('/coupons/create', superAdminController.createCoupon);
-// router.put('/coupons/update/:couponId', superAdminController.updateCoupon);
-// router.delete('/coupons/delete/:couponId', superAdminController.deleteCoupon);
+// Coupon routes
+router.post('/coupons/create',superAdminAuthMiddleware, adminsController.createCoupon);
+router.put('/coupons/update/:couponId',superAdminAuthMiddleware, adminsController.updateCoupon);
+router.delete('/coupons/delete/:couponId',superAdminAuthMiddleware, adminsController.deleteCoupon);
 
 module.exports = router;

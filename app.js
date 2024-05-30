@@ -3,9 +3,10 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const http = require('http');
 const session = require('express-session');
+const WebSocket = require('ws');
 
 // const { connectRabbitMQ } = require('./utils/rabbitmq');
-const { initializeSocket } = require('./utils/socket');
+// const { initializeSocket } = require('./utils/socket');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -21,6 +22,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 
 const { connectDB } = require('./utils/db');
+const User = require('./models/User'); // Ensure you import the User model
 
 require('dotenv').config();
 
@@ -30,7 +32,7 @@ const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
 
 // Middleware to update online status
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   if (req.user) {
     const onlineThreshold = 5 * 60 * 1000; // 5 minutes in milliseconds
     const currentTime = new Date();
@@ -39,20 +41,17 @@ app.use((req, res, next) => {
     const isOnline = (currentTime - req.user.lastOnline) <= onlineThreshold;
 
     // Update the online status based on activity within the threshold
-    User.findByIdAndUpdate(req.user._id, { online: isOnline, lastOnline: currentTime }, (err, user) => {
-      if (err) {
-        console.error('Error updating online status:', err);
-      }
-    });
+    try {
+      await User.findByIdAndUpdate(req.user._id, { online: isOnline, lastOnline: currentTime });
+    } catch (err) {
+      console.error('Error updating online status:', err);
+    }
   }
   next();
 });
 
-
 // Connect to MongoDB
 connectDB();
-// connectRabbitMQ();
-initializeSocket(server);
 
 // Middleware
 app.use(cors());
@@ -107,8 +106,38 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
+// WebSocket server setup
+const wss = new WebSocket.Server({ server });
+
+wss.on('connection', (ws) => {
+  console.log('A user connected');
+
+  ws.on('message', async (data) => {
+    const message = JSON.parse(data);
+    console.log(`Received message => ${message}`);
+
+    if (message.type === 'messageDelivered') {
+      try {
+        await Message.findByIdAndUpdate(message.messageId, { status: 'delivered' });
+      } catch (error) {
+        console.error('Error handling message delivered status update:', error);
+      }
+    } else if (message.type === 'messageSeen') {
+      try {
+        await Message.findByIdAndUpdate(message.messageId, { status: 'seen' });
+      } catch (error) {
+        console.error('Error handling message seen status update:', error);
+      }
+    } else {
+      console.log('Unknown message type');
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('User disconnected');
+  });
+});
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
