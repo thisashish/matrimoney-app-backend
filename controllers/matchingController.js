@@ -108,6 +108,7 @@ const getPotentialMatchesByUserId = async (userId) => {
 exports.getSentRequests = async (req, res) => {
     try {
         const userId = req.params.userId;
+        console.log(userId,'userId');
 
         // Find the current user and populate sentRequests
         const currentUser = await User.findOne({ userId }).populate('sentRequests');

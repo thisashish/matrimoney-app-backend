@@ -18,10 +18,10 @@ exports.sendMessage = async (req, res) => {
         await newMessage.save();
 
         // Send message to RabbitMQ queue
-        sendMessageToQueue('messageQueue', messageData);
+        // sendMessageToQueue('messageQueue', messageData);
 
         // Send notification to the receiver via Socket.IO
-        sendNotification(receiver, messageData);
+        // sendNotification(receiver, messageData);
 
         // Return success response
         res.status(201).json({ message: 'Message sent successfully', data: messageData });
