@@ -1,6 +1,8 @@
 const Message = require('../models/Message');
 const { sendMessageToQueue } = require('../utils/rabbitmq');
 const { sendNotification } = require('../utils/socket');
+const User = require('../models/User');
+const mongoose = require('mongoose');
 
 exports.sendMessage = async (req, res) => {
     try {
@@ -80,6 +82,64 @@ exports.deleteOldMessages = async () => {
         console.error('Error deleting old messages:', error);
     }
 };
+
+
+
+exports.getActiveChats = async (req, res) => {
+    try {
+        // Find all unique users who have either sent or received a chat message
+        const chatUsers = await Message.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    senders: { $addToSet: '$senderId' },
+                    receivers: { $addToSet: '$receiverId' }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    users: { $setUnion: ['$senders', '$receivers'] }
+                }
+            }
+        ]);
+
+        console.log(chatUsers,"chatUsers");
+
+        // Extract user IDs from chat messages
+        const chatUserIds = chatUsers.length > 0 ? chatUsers[0].users : [];
+
+        // Find all users who have either sent or received a chat request
+        const requestUsers = await User.aggregate([
+            {
+                $project: {
+                    sentRequests: 1,
+                    receivedRequests: 1
+                }
+            },
+            {
+                $project: {
+                    users: { $setUnion: ['$sentRequests', '$receivedRequests'] }
+                }
+            }
+        ]);
+
+        // Extract user IDs from chat requests
+        const requestUserIds = requestUsers.length > 0 ? requestUsers[0].users : [];
+
+        // Combine the user IDs from both sources
+        const allUserIds = [...new Set([...chatUserIds, ...requestUserIds].map(id => mongoose.Types.ObjectId(id)))];
+
+        // Retrieve user details for these unique user IDs
+        const users = await User.find({ _id: { $in: allUserIds } }).select('username email');
+
+        res.status(200).json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
+
 
 
 

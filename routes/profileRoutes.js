@@ -11,7 +11,7 @@ const User = require('../models/User');
 router.post('/:_id/update-profile', profileController.updateProfile);
 
 router.get('/search', authenticateUser, profileController.searchProfiles);
-router.get('/searchByUserId', authenticateUser, profileController.searchProfileByUserId);
+router.post('/searchByUserId', authenticateUser, profileController.searchProfileByUserId);
 
 // Route to fetch specific profile visitor
 router.get('/:userId/profile-visitors', authenticateUser, getProfileVisitors, async (req, res) => {

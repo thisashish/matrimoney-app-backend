@@ -153,6 +153,7 @@ exports.searchProfileByUserId = async (req, res) => {
 
         // Query the database to find profile by userId
         const profile = await User.findOne({ userId });
+        
 
         if (!profile) {
             return res.status(404).json({ message: 'Profile not found' });
