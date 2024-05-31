@@ -19,7 +19,7 @@ const authenticateUser = async (req, res, next) => {
         console.log('Decoded Token:', decodedToken); // Log the decoded token for debugging
 
         // Attach user data to request for further processing
-        req.userData = { userId: decodedToken.userId, email: decodedToken.email };
+        req.userData = { userId: decodedToken.userId, email: decodedToken.email,_id:decodedToken._id };
         next(); // Call next middleware
     } catch (error) {
         console.error('Error verifying token:', error);

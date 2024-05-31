@@ -50,7 +50,8 @@ exports.receiveMessages = async (req, res) => {
 
 exports.getChatHistory = async (req, res) => {
     try {
-        const receiverId = req.params.receiverId;
+        const receiverId = req.params._id;
+        console.log(receiverId,"receiverId");
         const tenDaysAgo = new Date();
         tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
 
@@ -68,8 +69,6 @@ exports.getChatHistory = async (req, res) => {
 };
 
 
-
-
 exports.deleteOldMessages = async () => {
     try {
         const tenDaysAgo = new Date();
@@ -84,61 +83,163 @@ exports.deleteOldMessages = async () => {
 };
 
 
-
-exports.getActiveChats = async (req, res) => {
+exports.listChats = async (req, res) => {
     try {
-        // Find all unique users who have either sent or received a chat message
-        const chatUsers = await Message.aggregate([
-            {
-                $group: {
-                    _id: null,
-                    senders: { $addToSet: '$senderId' },
-                    receivers: { $addToSet: '$receiverId' }
-                }
-            },
-            {
-                $project: {
-                    _id: 0,
-                    users: { $setUnion: ['$senders', '$receivers'] }
-                }
-            }
-        ]);
+        const userId = req.userData._id; // Assuming the user ID is available in the request object
+        console.log(userId,"userId");
+        // Find unique sender-receiver pairs where the user is either the sender or receiver
+        const sentMessages = await Message.find({ sender: userId }).populate('receiver', 'firstName lastName email');
+        console.log(sentMessages,"sentMessages");
+        const receivedMessages = await Message.find({ receiver: userId }).populate('sender', 'firstName lastName email');
+        console.log(receivedMessages,"receivedMessages");
+        // Extract unique users from, the messages
+        const sentUsers = sentMessages.map(msg => msg.receiver);
+        const receivedUsers = receivedMessages.map(msg => msg.sender);
+        
+        // Combine and deduplicate the user lists
+        const uniqueUsers = [...new Map([...sentUsers, ...receivedUsers].map(user => [user._id, user])).values()];
 
-        console.log(chatUsers,"chatUsers");
-
-        // Extract user IDs from chat messages
-        const chatUserIds = chatUsers.length > 0 ? chatUsers[0].users : [];
-
-        // Find all users who have either sent or received a chat request
-        const requestUsers = await User.aggregate([
-            {
-                $project: {
-                    sentRequests: 1,
-                    receivedRequests: 1
-                }
-            },
-            {
-                $project: {
-                    users: { $setUnion: ['$sentRequests', '$receivedRequests'] }
-                }
-            }
-        ]);
-
-        // Extract user IDs from chat requests
-        const requestUserIds = requestUsers.length > 0 ? requestUsers[0].users : [];
-
-        // Combine the user IDs from both sources
-        const allUserIds = [...new Set([...chatUserIds, ...requestUserIds].map(id => mongoose.Types.ObjectId(id)))];
-
-        // Retrieve user details for these unique user IDs
-        const users = await User.find({ _id: { $in: allUserIds } }).select('username email');
-
-        res.status(200).json(users);
+        res.status(200).json(uniqueUsers);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error', error });
+        console.error('Error listing chat users:', error);
+        res.status(500).json({ message: 'Failed to list chat users', error: error.message });
     }
 };
+
+
+
+// exports.getActiveChats = async (req, res) => {
+//     try {
+//         // Log all messages to verify data
+//         // const allMessages = await Message.find();
+//         // console.log('All Messages:', allMessages);
+
+//         // Find all unique users who have either sent or received a chat message
+//         const chatUsers = await Message.aggregate([
+//             {
+//                 $group: {
+//                     _id: null,
+//                     senders: { $addToSet: '$sender' },
+//                     receivers: { $addToSet: '$receiver' }
+//                 }
+//             },
+//             {
+//                 $project: {
+//                     _id: 0,
+//                     users: { $setUnion: ['$senders', '$receivers'] }
+//                 }
+//             }
+//         ]);
+
+//         // Log the result of chatUsers aggregation
+//         console.log('Chat Users:', chatUsers);
+
+//         // Extract user IDs from chat messages
+//         const chatUserIds = chatUsers.length > 0 ? chatUsers[0].users : [];
+
+//         // Log the extracted user IDs
+//         console.log('Chat User IDs:', chatUserIds);
+
+//         // Find all users who have either sent or received a chat request
+//         const requestUsers = await User.aggregate([
+//             {
+//                 $project: {
+//                     sentRequests: 1,
+//                     receivedRequests: 1
+//                 }
+//             },
+//             {
+//                 $project: {
+//                     users: { $setUnion: ['$sentRequests', '$receivedRequests'] }
+//                 }
+//             }
+//         ]);
+
+//         // Log the result of requestUsers aggregation
+//         console.log('Request Users:', requestUsers);
+
+//         // Extract user IDs from chat requests
+//         const requestUserIds = requestUsers.length > 0 ? requestUsers[0].users : [];
+
+//         // Log the extracted request user IDs
+//         console.log('Request User IDs:', requestUserIds);
+
+//         // Combine the user IDs from both sources
+//         const allUserIds = [...new Set([...chatUserIds, ...requestUserIds].map(id => mongoose.Types.ObjectId(id)))];
+
+//         // Log the combined user IDs
+//         console.log('All User IDs:', allUserIds);
+
+//         // Retrieve user details for these unique user IDs
+//         const users = await User.find({ _id: { $in: allUserIds } }).select('username email');
+
+//         // Log the found users
+//         console.log('Users:', users);
+
+//         res.status(200).json(users);
+//     } catch (error) {
+//         console.error('Error in getActiveChats:', error);
+//         res.status(500).json({ message: 'Server error', error: error.message });
+//     }
+// };
+
+
+
+
+// exports.getActiveChats = async (req, res) => {
+//     try {
+//         // Find all unique users who have either sent or received a chat message
+//         const chatUsers = await Message.aggregate([
+//             {
+//                 $group: {
+//                     _id: null,
+//                     senders: { $addToSet: '$senderId' },
+//                     receivers: { $addToSet: '$receiverId' }
+//                 }
+//             },
+//             {
+//                 $project: {
+//                     _id: 0,
+//                     users: { $setUnion: ['$senders', '$receivers'] }
+//                 }
+//             }
+//         ]);
+
+//         console.log(chatUsers,"chatUsers");
+
+//         // Extract user IDs from chat messages
+//         const chatUserIds = chatUsers.length > 0 ? chatUsers[0].users : [];
+
+//         // Find all users who have either sent or received a chat request
+//         const requestUsers = await User.aggregate([
+//             {
+//                 $project: {
+//                     sentRequests: 1,
+//                     receivedRequests: 1
+//                 }
+//             },
+//             {
+//                 $project: {
+//                     users: { $setUnion: ['$sentRequests', '$receivedRequests'] }
+//                 }
+//             }
+//         ]);
+
+//         // Extract user IDs from chat requests
+//         const requestUserIds = requestUsers.length > 0 ? requestUsers[0].users : [];
+
+//         // Combine the user IDs from both sources
+//         const allUserIds = [...new Set([...chatUserIds, ...requestUserIds].map(id => mongoose.Types.ObjectId(id)))];
+
+//         // Retrieve user details for these unique user IDs
+//         const users = await User.find({ _id: { $in: allUserIds } }).select('username email');
+
+//         res.status(200).json(users);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Server error', error });
+//     }
+// };
 
 
 
