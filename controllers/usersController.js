@@ -121,7 +121,8 @@ exports.getOppositeGenderUsers = async (req, res) => {
             gender: { $ne: user.gender },
             blockedUsers: { $nin: [userIdObject] },
             receivedRequests: { $nin: [userIdObject] },
-            sentRequests: { $nin: [userIdObject] }
+            sentRequests: { $nin: [userIdObject] },
+            firstName: { $ne: null }
         });
 
         res.status(200).json({ oppositeGenderUsers });
