@@ -22,12 +22,12 @@ router.put('/reset-password',authenticateUser, authController.resetPassword);
 router.get('/user-initial-info', authenticateUser, async (req, res) => {
     try {
         // Extract the user ID from the token
-        const userId = req.userData;
+        const userId = req.userData.userId;
         console.log(userId, 'userId');
 
 
         // Query the database to find the user by ID
-        const user = await User.findOne(userId);
+        const user = await User.findOne({userId});
 
         // If user is not found or token is empty, return a 404 Not Found response
         if (!user || !user.tokens) {
