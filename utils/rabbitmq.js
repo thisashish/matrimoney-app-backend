@@ -3,23 +3,18 @@ const amqp = require('amqplib/callback_api');
 // Initialize channel variable
 let channel = null;
 
-// RabbitMQ URL
+// RabbitMQ URL from environment variable
 const rabbitmqUrl = process.env.RABBITMQ_URL_PROD;
-// || 'amqp://guest:guest@localhost:5672';
 
-
-const maxRetries = 5; 
+const maxRetries = 50; 
 let retryCount = 0;
 
-// Function to establish RabbitMQ connection\
-
+// Function to establish RabbitMQ connection
 const connectRabbitMQ = () => {
   if (!rabbitmqUrl) {
     console.error('RABBITMQ_URL is not defined');
     return;
   }
-
-
 
   const attemptConnection = () => {
     console.log(`Attempting to connect to RabbitMQ: ${rabbitmqUrl}`);
@@ -69,8 +64,6 @@ const connectRabbitMQ = () => {
 
   attemptConnection();
 };
-
-
 
 // Function to send message to RabbitMQ queue
 const sendMessageToQueue = (queue, message) => {
