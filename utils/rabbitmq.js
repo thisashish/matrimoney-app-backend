@@ -5,6 +5,8 @@ let channel = null;
 
 // RabbitMQ URL from environment variable
 const rabbitmqUrl = process.env.RABBITMQ_URL_PROD;
+const queueName = process.env.RABBITMQ_QUEUE_NAME ;
+// || 'messageQueue';
 
 const maxRetries = 50; 
 let retryCount = 0;
@@ -55,8 +57,8 @@ const connectRabbitMQ = () => {
         // Set the channel variable
         channel = ch;
         // Declare the queue with the correct settings
-        channel.assertQueue('messageQueue', { durable: true });
-        console.log('Connected to RabbitMQ');
+        channel.assertQueue(queueName, { durable: true });
+        console.log('Connected to RabbitMQ and queue asserted');
         retryCount = 0; // Reset retry count on successful connection
       });
     });
@@ -72,11 +74,16 @@ const sendMessageToQueue = (queue, message) => {
     return;
   }
   // Assert the queue and send message
-  channel.assertQueue(queue, { durable: true });
-  channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
-    persistent: true
+  channel.assertQueue(queue, { durable: true }, (err, ok) => {
+    if (err) {
+      console.error('Failed to assert queue:', err.message);
+      return;
+    }
+    channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
+      persistent: true
+    });
+    console.log('Message sent to queue:', message);
   });
-  console.log('Message sent to queue:', message);
 };
 
 // Function to receive messages from RabbitMQ queue
@@ -95,9 +102,11 @@ const receiveMessagesFromQueue = (queue, receiverId) => {
             const message = JSON.parse(msg.content.toString());
             if (message.receiver === receiverId) {
               channel.ack(msg);
+              console.log('Message received and acknowledged:', message);
               resolve([message]);
             } else {
               channel.nack(msg);
+              console.log('Message not for this receiver, not acknowledged:', message);
             }
           } catch (err) {
             console.error('Error processing message:', err.message);
