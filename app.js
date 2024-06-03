@@ -3,10 +3,11 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const http = require('http');
 const session = require('express-session');
-const WebSocket = require('ws');
 
-// const { connectRabbitMQ } = require('./utils/rabbitmq');
-// const { initializeSocket } = require('./utils/socket');
+
+
+const { connectRabbitMQ } = require('./utils/rabbitmq');
+const { initializeSocket } = require('./utils/socket');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -72,6 +73,7 @@ app.use(session({
   saveUninitialized: true
 }));
 
+
 // For parsing application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 
@@ -106,38 +108,63 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
-// WebSocket server setup
-const wss = new WebSocket.Server({ server });
+initializeSocket(server);
 
-wss.on('connection', (ws) => {
-  console.log('A user connected');
-
-  ws.on('message', async (data) => {
-    const message = JSON.parse(data);
-    console.log(`Received message => ${message}`);
-
-    if (message.type === 'messageDelivered') {
-      try {
-        await Message.findByIdAndUpdate(message.messageId, { status: 'delivered' });
-      } catch (error) {
-        console.error('Error handling message delivered status update:', error);
-      }
-    } else if (message.type === 'messageSeen') {
-      try {
-        await Message.findByIdAndUpdate(message.messageId, { status: 'seen' });
-      } catch (error) {
-        console.error('Error handling message seen status update:', error);
-      }
-    } else {
-      console.log('Unknown message type');
-    }
-  });
-
-  ws.on('close', () => {
-    console.log('User disconnected');
-  });
+cron.schedule('*/5 * * * *', async () => {
+  try {
+    const onlineThreshold = 5 * 60 * 1000;
+    const currentTime = new Date();
+    const usersToUpdate = await User.find({
+      lastOnline: { $lt: new Date(currentTime - onlineThreshold) },
+      online: true
+    });
+    await User.updateMany(
+      { _id: { $in: usersToUpdate.map(user => user._id) } },
+      { online: false }
+    );
+  } catch (error) {
+    console.error('Error updating offline status:', error);
+  }
 });
+
+
+connectRabbitMQ(() => {
+  console.log('RabbitMQ connected');
+});
+
+// // WebSocket server setup
+// const wss = new WebSocket.Server({ server });
+
+// wss.on('connection', (ws) => {
+//   console.log('A user connected');
+
+//   ws.on('message', async (data) => {
+//     const message = JSON.parse(data);
+//     console.log(`Received message => ${message}`);
+
+//     if (message.type === 'messageDelivered') {
+//       try {
+//         await Message.findByIdAndUpdate(message.messageId, { status: 'delivered' });
+//       } catch (error) {
+//         console.error('Error handling message delivered status update:', error);
+//       }
+//     } else if (message.type === 'messageSeen') {
+//       try {
+//         await Message.findByIdAndUpdate(message.messageId, { status: 'seen' });
+//       } catch (error) {
+//         console.error('Error handling message seen status update:', error);
+//       }
+//     } else {
+//       console.log('Unknown message type');
+//     }
+//   });
+
+//   ws.on('close', () => {
+//     console.log('User disconnected');
+//   });
+// });
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+

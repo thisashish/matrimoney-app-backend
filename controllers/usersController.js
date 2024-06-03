@@ -106,7 +106,6 @@ exports.getAdditionalInfo = async (req, res) => {
 
 exports.getOppositeGenderUsers = async (req, res) => {
     const userId = req.userData.userId;
-    console.log(userId, 'userid');
 
     try {
         const user = await User.findOne({ userId });
@@ -116,13 +115,14 @@ exports.getOppositeGenderUsers = async (req, res) => {
         }
 
         const userIdObject = new mongoose.Types.ObjectId(user._id);
-
+        
         let oppositeGenderUsers = await User.find({
             gender: { $ne: user.gender },
             blockedUsers: { $nin: [userIdObject] },
             receivedRequests: { $nin: [userIdObject] },
             sentRequests: { $nin: [userIdObject] },
-            firstName: { $ne: null }
+            firstName: { $ne: null },
+            acceptedRequests:{$nin:[userIdObject]}
         });
 
         res.status(200).json({ oppositeGenderUsers });
@@ -147,7 +147,8 @@ exports.getMatches = async (req, res) => {
             gender: { $ne: user.gender },
             blockedUsers: { $nin: [userId] },
             receivedRequests: { $nin: [userId] },
-            sentRequests: { $nin: [userId] }
+            sentRequests: { $nin: [userId] },
+            acceptedRequests:{$nin:[userId]}
         });
 
         const matches = oppositeGenderUsers.slice(lastViewedProfileIndex);

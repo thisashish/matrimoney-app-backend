@@ -19,11 +19,19 @@ exports.sendMessage = async (req, res) => {
         const newMessage = new Message(messageData);
         await newMessage.save();
 
-        // Send message to RabbitMQ queue
-        // sendMessageToQueue('messageQueue', messageData);
-
-        // Send notification to the receiver via Socket.IO
-        // sendNotification(receiver, messageData);
+        // Check if the receiver is online
+        const receiverUser = await User.findById(receiver);
+        if (receiverUser.online) {
+            const receiverSocket = getUserSocket(receiver);
+            sendNotification(receiver, messageData);
+            if (receiverSocket) {
+                // Send the message via WebSocket
+                receiverSocket.send(JSON.stringify({ type: 'newMessage', data: messageData }));
+            }
+        } else {
+            // Send message to RabbitMQ queue
+            sendMessageToQueue('messageQueue', messageData);
+        }
 
         // Return success response
         res.status(201).json({ message: 'Message sent successfully', data: messageData });
@@ -32,6 +40,37 @@ exports.sendMessage = async (req, res) => {
         res.status(500).json({ message: 'Failed to send message', error: error.message });
     }
 };
+
+
+
+// exports.sendMessage = async (req, res) => {
+//     try {
+//         const { sender, receiver, message } = req.body;
+
+//         // Validate required fields
+//         if (!sender || !receiver || !message) {
+//             return res.status(400).json({ message: 'Sender, receiver, and message are required' });
+//         }
+
+//         // Create a new message
+//         const messageData = { sender, receiver, message };
+
+//         const newMessage = new Message(messageData);
+//         await newMessage.save();
+
+//         // Send message to RabbitMQ queue
+//         // sendMessageToQueue('messageQueue', messageData);
+
+//         // Send notification to the receiver via Socket.IO
+//         // sendNotification(receiver, messageData);
+
+//         // Return success response
+//         res.status(201).json({ message: 'Message sent successfully', data: messageData });
+//     } catch (error) {
+//         console.error('Error sending message:', error);
+//         res.status(500).json({ message: 'Failed to send message', error: error.message });
+//     }
+// };
 
 exports.receiveMessages = async (req, res) => {
     try {
@@ -42,9 +81,38 @@ exports.receiveMessages = async (req, res) => {
 
         // Return the messages as a response
         res.status(200).json(messages);
+
+         // Consume messages from RabbitMQ queue
+         consumeMessages('messageQueue', async (messageData) => {
+            if (messageData.receiver === receiverId) {
+                const newMessage = new Message(messageData);
+                await newMessage.save();
+                sendNotification(receiverId, messageData);
+            }
+        });
+
+
     } catch (error) {
         console.error('Error receiving messages:', error);
         res.status(500).json({ message: 'Failed to receive messages', error: error.message });
+    }
+};
+
+exports.receiveMessagesFromQueue = async (req, res) => {
+    try {
+        const receiverId = req.params.receiverId;
+
+        // Fetch messages from RabbitMQ for the receiver
+        const messages = await receiveMessagesFromQueue('messageQueue', receiverId);
+
+        // Save the messages to the database
+        const savedMessages = await Message.insertMany(messages);
+
+        // Return the messages as a response
+        res.status(200).json(savedMessages);
+    } catch (error) {
+        console.error('Error receiving messages from queue:', error);
+        res.status(500).json({ message: 'Failed to receive messages from queue', error: error.message });
     }
 };
 

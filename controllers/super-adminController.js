@@ -3,6 +3,7 @@
 const User = require('../models/User');
 const SubscriptionPlan = require('../models/SubscriptionPlan');
 const Coupon = require('../models/Coupon');
+const Message = require('../models/Message');
 
 // exports.getAllFemaleUsers = async (req, res) => {
 //     try {
@@ -148,6 +149,7 @@ exports.blockUser = async (req, res) => {
 
 
 // Controller function to create a new subscription plan
+
 exports.createSubscriptionPlan = async (req, res) => {
   const { name, duration, price, couponCode, discountPercentage, expiryDate } = req.body;
 
@@ -270,5 +272,18 @@ exports.deleteCoupon = async (req, res) => {
   } catch (error) {
     console.error('Error deleting coupon:', error);
     res.status(500).json({ message: 'Failed to delete coupon', error: error.message });
+  }
+};
+
+exports.getAllChats = async (req, res) => {
+  try {
+      const messages = await Message.find()
+          .populate('sender', 'email')
+          .populate('receiver', 'email');
+
+      res.status(200).json({ success: true, messages });
+  } catch (error) {
+      console.error('Error fetching all chats:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch chats', error: error.message });
   }
 };

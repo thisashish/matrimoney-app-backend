@@ -14,6 +14,7 @@ const authenticateSuperAdmin = require('../middleware/adminLogout');
 const authenticateAdmin = require('../middleware/adminAuth');
 const SuperAdmin = require('../models/superAdmin');
 const superAdminAuthMiddleware = require('../middleware/superAdminAuthMiddleware');
+const User = require('../models/User');
 
 const adminsController = require('../controllers/super-adminController');
 
@@ -102,7 +103,7 @@ router.post('/create-super-admin', isAdmin, async (req, res) => {
     }
 });
 
-const User = require('../models/User');
+
 // Super Admin Photo Verification Route
 router.put('/verify-photo/:userId', superAdminAuthMiddleware, adminsController.verifyFirstPhoto);
 
@@ -265,5 +266,8 @@ router.get('/plans',superAdminAuthMiddleware, adminsController.listSubscriptionP
 router.post('/coupons/create',superAdminAuthMiddleware, adminsController.createCoupon);
 router.put('/coupons/update/:couponId',superAdminAuthMiddleware, adminsController.updateCoupon);
 router.delete('/coupons/delete/:couponId',superAdminAuthMiddleware, adminsController.deleteCoupon);
+
+router.get('/user-chats', superAdminAuthMiddleware, adminsController.getAllChats);
+
 
 module.exports = router;
