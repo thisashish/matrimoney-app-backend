@@ -25,6 +25,125 @@ const Message = require('../models/Message');
 // controllers/adminController.js
 
 
+exports.searchUserByEmail = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+      const user = await User.findOne({ email });
+
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      res.status(200).json(user);
+  } catch (error) {
+      console.error('Error searching user by email:', error);
+      res.status(500).json({ message: 'Failed to search user by email', error: error.message });
+  }
+};
+
+// Controller to search user by phone number
+exports.searchUserByPhone = async (req, res) => {
+  const { phone } = req.body; 
+
+  try {
+    const user = await User.findOne({ phone });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error searching user by phone:', error);
+    res.status(500).json({ message: 'Failed to search user by phone', error: error.message });
+  }
+};
+
+// Controller to get all users
+exports.getAllUsers = async (req, res) => {
+  try {
+      const users = await User.find();
+      res.status(200).json(users);
+  } catch (error) {
+      console.error('Error fetching all users:', error);
+      res.status(500).json({ message: 'Failed to fetch all users', error: error.message });
+  }
+};
+
+exports.getUsersByGender = async (req, res) => {
+  try {
+      const { gender } = req.query;
+
+      // Query the database to find users based on gender
+      const users = await User.find({ gender });
+      console.log(users, 'users data');
+
+      // Return the users as a response
+      res.status(200).json(users);
+  } catch (error) {
+      console.error('Error fetching users by gender:', error);
+      res.status(500).json({ message: 'Failed to fetch users by gender', error: error.message });
+  }
+};
+
+
+exports.getAllMaleUsers = async (req, res) => {
+  try {
+      // Check if the user making the request is an admin
+      if (!req.admin) {
+          return res.status(403).json({ success: false, message: "User is not authorized as admin." });
+      }
+
+      // Find all male users
+      const maleUsers = await User.find({ gender: 'male' });
+
+      res.status(200).json({ maleUsers });
+  } catch (error) {
+      console.error('Error fetching male users:', error);
+      res.status(500).json({ message: 'Failed to fetch male users', error: error.message });
+  }
+};
+
+
+// Controller to edit user data
+exports.editUser = async (req, res) => {
+  const { userId } = req.params;
+  
+  const updatedData = req.body;
+
+  try {
+      const updatedUser = await User.findOneAndUpdate({userId:userId}, updatedData, { new: true });
+
+      if (!updatedUser) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      res.status(200).json({ message: 'User updated successfully', user: updatedUser });
+  } catch (error) {
+      console.error('Error updating user:', error);
+      res.status(500).json({ message: 'Failed to update user', error: error.message });
+  }
+};
+
+// Controller to delete user
+exports.deleteUser = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+      const deletedUser = await User.findOneAndDelete({userId});
+
+      if (!deletedUser) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      res.status(200).json({ message: 'User deleted successfully', user: deletedUser });
+  } catch (error) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({ message: 'Failed to delete user', error: error.message });
+  }
+};
+
 exports.verifyFirstPhoto = async (req, res) => {
     const { userId } = req.params;
 
@@ -57,41 +176,6 @@ exports.verifyFirstPhoto = async (req, res) => {
     }
 };
 
-
-
-exports.getUsersByGender = async (req, res) => {
-    try {
-        const { gender } = req.query;
-
-        // Query the database to find users based on gender
-        const users = await User.find({ gender });
-        console.log(users, 'users data');
-
-        // Return the users as a response
-        res.status(200).json(users);
-    } catch (error) {
-        console.error('Error fetching users by gender:', error);
-        res.status(500).json({ message: 'Failed to fetch users by gender', error: error.message });
-    }
-};
-
-
-exports.getAllMaleUsers = async (req, res) => {
-    try {
-        // Check if the user making the request is an admin
-        if (!req.admin) {
-            return res.status(403).json({ success: false, message: "User is not authorized as admin." });
-        }
-
-        // Find all male users
-        const maleUsers = await User.find({ gender: 'male' });
-
-        res.status(200).json({ maleUsers });
-    } catch (error) {
-        console.error('Error fetching male users:', error);
-        res.status(500).json({ message: 'Failed to fetch male users', error: error.message });
-    }
-};
 
 // Controller method to activate a user
 exports.activateUser = async (req, res) => {

@@ -2,19 +2,20 @@ const amqp = require('amqplib/callback_api');
 
 // Initialize channel variable
 let channel = null;
+let isConnected = false;
 
-// RabbitMQ URL from environment variable
-const rabbitmqUrl = process.env.RABBITMQ_URL_PROD;
-const queueName = process.env.RABBITMQ_QUEUE_NAME ;
-// || 'messageQueue';
+// RabbitMQ URL and Queue Name from environment variable
+// const rabbitmqUrl = process.env.RABBITMQ_URL_PROD;
+// const queueName = process.env.RABBITMQ_QUEUE_NAME;
+const rabbitmqUrl = "amqp://rabbitmq:Bhad@mt42@https://rabbitmq-6wqx.onrender.com:5672";
 
-const maxRetries = 50; 
+const maxRetries = 3;
 let retryCount = 0;
 
 // Function to establish RabbitMQ connection
 const connectRabbitMQ = () => {
   if (!rabbitmqUrl) {
-    console.error('RABBITMQ_URL is not defined');
+    console.error('RABBITMQ_URL_PROD is not defined');
     return;
   }
 
@@ -27,7 +28,7 @@ const connectRabbitMQ = () => {
         if (retryCount < maxRetries) {
           retryCount++;
           console.log(`Retrying connection (${retryCount}/${maxRetries})...`);
-          setTimeout(attemptConnection, 2000); // Retry after 2 seconds
+          setTimeout(attemptConnection, 2000);
         } else {
           console.error('Max retries reached. Could not connect to RabbitMQ.');
         }
@@ -57,9 +58,15 @@ const connectRabbitMQ = () => {
         // Set the channel variable
         channel = ch;
         // Declare the queue with the correct settings
-        channel.assertQueue(queueName, { durable: true });
-        console.log('Connected to RabbitMQ and queue asserted');
-        retryCount = 0; // Reset retry count on successful connection
+        channel.assertQueue(queueName, { durable: true }, (error2, ok) => {
+          if (error2) {
+            console.error('Failed to assert queue:', error2.message);
+            return;
+          }
+          console.log('Connected to RabbitMQ and queue asserted');
+          retryCount = 0; // Reset retry count on successful connection
+          isConnected = true; // Indicate that connection and channel are ready
+        });
       });
     });
   };
@@ -120,8 +127,26 @@ const receiveMessagesFromQueue = (queue, receiverId) => {
   });
 };
 
+// Wrapper function to send a message once the connection is established
+const sendWhenConnected = (queue, message) => {
+  if (isConnected) {
+    sendMessageToQueue(queue, message);
+  } else {
+    console.log('Waiting for connection to RabbitMQ...');
+    const checkConnection = setInterval(() => {
+      if (isConnected) {
+        clearInterval(checkConnection);
+        sendMessageToQueue(queue, message);
+      }
+    }, 1000); // Check every 1 second
+  }
+};
+
 module.exports = {
-  sendMessageToQueue,
+  sendMessageToQueue: sendWhenConnected,
   receiveMessagesFromQueue,
   connectRabbitMQ
 };
+
+// Connect to RabbitMQ when the module is loaded
+connectRabbitMQ();

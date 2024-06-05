@@ -139,12 +139,25 @@ router.put('/super-admin-update-email/:id', isAdmin, async (req, res) => {
 router.post('/super-admin-logout', authenticateSuperAdmin, superAdminLogout);
 
 
+// Route to get all users
+router.get('/all-users', superAdminAuthMiddleware, adminsController.getAllUsers);
+
 // Admin route to get all female users
 router.get('/users-by-gender', authenticateAdmin, adminsController.getUsersByGender);
 
 // Admin route to get all male users
 router.get('/male-users', authenticateAdmin, adminsController.getAllMaleUsers);
 
+router.post('/search-user-by-email', superAdminAuthMiddleware, adminsController.searchUserByEmail);
+
+// Route to search user by phone number
+router.post('/search-user-by-phone', superAdminAuthMiddleware, adminsController.searchUserByPhone);
+
+// Route to edit user data
+router.put('/edit-user/:userId', superAdminAuthMiddleware, adminsController.editUser);
+
+// Route to delete user
+router.delete('/delete-user/:userId', superAdminAuthMiddleware, adminsController.deleteUser);
 
 router.post('/add-admin', superAdminAuthMiddleware, async (req, res) => {
     const { email, adminPassword } = req.body;
@@ -257,15 +270,15 @@ router.put('/update-user-email/:userId', superAdminAuthMiddleware, async (req, r
 });
 
 
-router.post('/plans/create',superAdminAuthMiddleware, adminsController.createSubscriptionPlan);
-router.put('/plans/update/:planId',superAdminAuthMiddleware, adminsController.updateSubscriptionPlan);
-router.delete('/plans/delete/:planId',superAdminAuthMiddleware, adminsController.deleteSubscriptionPlan);
-router.get('/plans',superAdminAuthMiddleware, adminsController.listSubscriptionPlans);
+router.post('/plans/create', superAdminAuthMiddleware, adminsController.createSubscriptionPlan);
+router.put('/plans/update/:planId', superAdminAuthMiddleware, adminsController.updateSubscriptionPlan);
+router.delete('/plans/delete/:planId', superAdminAuthMiddleware, adminsController.deleteSubscriptionPlan);
+router.get('/plans', superAdminAuthMiddleware, adminsController.listSubscriptionPlans);
 
 // Coupon routes
-router.post('/coupons/create',superAdminAuthMiddleware, adminsController.createCoupon);
-router.put('/coupons/update/:couponId',superAdminAuthMiddleware, adminsController.updateCoupon);
-router.delete('/coupons/delete/:couponId',superAdminAuthMiddleware, adminsController.deleteCoupon);
+router.post('/coupons/create', superAdminAuthMiddleware, adminsController.createCoupon);
+router.put('/coupons/update/:couponId', superAdminAuthMiddleware, adminsController.updateCoupon);
+router.delete('/coupons/delete/:couponId', superAdminAuthMiddleware, adminsController.deleteCoupon);
 
 router.get('/user-chats', superAdminAuthMiddleware, adminsController.getAllChats);
 

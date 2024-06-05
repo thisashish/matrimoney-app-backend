@@ -352,14 +352,14 @@ async function sendOTP(email, otp) {
     const transporter = nodemailer.createTransport({
         service: 'Gmail',
         auth: {
-            user: 'ashish.vishwakarma1267@gmail.com',
-            pass: 'bwlm vrqy nqdg omsk'
+            user: 'av556548@gmail.com',
+            pass: 'lsxlqhoyzofnupsx'
         }
     });
 
     // Setup email data
     const mailOptions = {
-        from: 'ashish.vishwakarma1267@gmail.com',
+        from: 'av556548@gmail.com',
         to: email,
         subject: 'OTP Verification',
         text: `Your OTP for registration is: ${otp}`
