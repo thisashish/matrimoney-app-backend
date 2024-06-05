@@ -1,9 +1,10 @@
 const socketIo = require('socket.io');
 const Message = require('../models/Message');
-const WebSocket = require('ws');
 
 // Note: You should define `server` before using it
 let io;
+const onlineUsers = new Map();
+console.log(onlineUsers,'online users');
 
 const initializeSocket = (server) => {
     io = socketIo(server, {
@@ -15,8 +16,22 @@ const initializeSocket = (server) => {
 
     io.on('connection', (socket) => {
         console.log('A user connected');
+        
+        // Handle user joining
+        socket.on('join', (userId) => {
+            onlineUsers.set(userId, socket.id);
+            console.log(`User ${userId} is online with socket ID ${socket.id}`);
+        });
+
         socket.on('disconnect', () => {
             console.log('User disconnected');
+            for (let [userId, socketId] of onlineUsers) {
+                if (socketId === socket.id) {
+                    onlineUsers.delete(userId);
+                    console.log(`User ${userId} went offline`);
+                    break;
+                }
+            }
         });
 
         // Handle message status updates (delivered/seen)
@@ -42,8 +57,16 @@ const initializeSocket = (server) => {
 
 const sendNotification = (receiver, message) => {
     if (io) {
-        io.to(receiver).emit('notification', message);
+        const receiverSocketId = onlineUsers.get(receiver);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit('notification', message);
+        }
     }
 };
 
-module.exports = { initializeSocket, sendNotification };
+const getUserSocket = (userId) => {
+    const socketId = onlineUsers.get(userId);
+    return socketId ? io.sockets.sockets.get(socketId) : null;
+};
+
+module.exports = { initializeSocket, sendNotification, getUserSocket };

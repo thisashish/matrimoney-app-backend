@@ -55,7 +55,11 @@ app.use(async (req, res, next) => {
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST'], // Add other allowed HTTP methods if needed
+  allowedHeaders: ['Content-Type', 'Authorization'], // Add other allowed headers if needed
+}));
 app.use(express.json());
 app.use(bodyParser.json());
 

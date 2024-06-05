@@ -1,11 +1,12 @@
 const Message = require('../models/Message');
-const { sendMessageToQueue } = require('../utils/rabbitmq');
+// const { sendMessageToQueue } = require('../utils/rabbitmq');
 const { sendNotification } = require('../utils/socket');
 const User = require('../models/User');
 const mongoose = require('mongoose');
 
 
-
+const { sendMessageToQueue, consumeMessages } = require('../utils/rabbitmq'); 
+const { getUserSocket } = require('../utils/socket'); 
 
 exports.sendMessage = async (req, res) => {
     try {
@@ -27,6 +28,8 @@ exports.sendMessage = async (req, res) => {
         if (receiverUser.online) {
             const receiverSocket = getUserSocket(receiver);
             sendNotification(receiver, messageData);
+            sendMessageToQueue('messageQueue', messageData); // Send message to RabbitMQ
+
             if (receiverSocket) {
                 // Send the message via WebSocket
                 receiverSocket.send(JSON.stringify({ type: 'newMessage', data: messageData }));
@@ -43,6 +46,7 @@ exports.sendMessage = async (req, res) => {
         res.status(500).json({ message: 'Failed to send message', error: error.message });
     }
 };
+
 
 exports.receiveMessages = async (req, res) => {
     try {
