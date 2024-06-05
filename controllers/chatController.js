@@ -151,21 +151,53 @@ exports.deleteOldMessages = async () => {
 };
 
 
+
 exports.listChats = async (req, res) => {
     try {
-        const userId = req.userData._id; // Assuming the user ID is available in the request object
-        console.log(userId,"userId");
+        const userId = req.userData._id;
+
         // Find unique sender-receiver pairs where the user is either the sender or receiver
-        const sentMessages = await Message.find({ sender: userId }).populate('receiver', 'firstName lastName email');
-        console.log(sentMessages,"sentMessages");
-        const receivedMessages = await Message.find({ receiver: userId }).populate('sender', 'firstName lastName email');
-        console.log(receivedMessages,"receivedMessages");
-        // Extract unique users from, the messages
-        const sentUsers = sentMessages.map(msg => msg.receiver);
-        const receivedUsers = receivedMessages.map(msg => msg.sender);
-        
-        // Combine and deduplicate the user lists
-        const uniqueUsers = [...new Map([...sentUsers, ...receivedUsers].map(user => [user._id, user])).values()];
+        const sentMessages = await Message.find({ sender: userId }).populate('receiver', 'firstName lastName email photos');
+        const receivedMessages = await Message.find({ receiver: userId }).populate('sender', 'firstName lastName email photos');
+
+        // Combine sent and received messages, then sort by timestamp to get the latest message for each user
+        const allMessages = [...sentMessages, ...receivedMessages];
+        allMessages.sort((a, b) => b.timestamp - a.timestamp); // Assuming there's a 'timestamp' field in the messages
+
+        // Extract unique users and their last messages
+        const users = {};
+        allMessages.forEach(msg => {
+            if (msg.receiver._id.toString() === userId.toString()) {
+                const senderId = msg.sender._id.toString();
+                if (!users[senderId]) {
+                    users[senderId] = {
+                        _id: senderId,
+                        firstName: msg.sender.firstName,
+                        lastName: msg.sender.lastName,
+                        email: msg.sender.email,
+                        photo: msg.sender.photos.length > 0 ? msg.sender.photos[0].filename : null, // Assuming you want to use the first photo as profile photo
+                        lastMessage: msg.message,
+                        timestamp: msg.timestamp
+                    };
+                }
+            } else {
+                const receiverId = msg.receiver._id.toString();
+                if (!users[receiverId]) {
+                    users[receiverId] = {
+                        _id: receiverId,
+                        firstName: msg.receiver.firstName,
+                        lastName: msg.receiver.lastName,
+                        email: msg.receiver.email,
+                        photo: msg.receiver.photos.length > 0 ? msg.receiver.photos[0].filename : null, // Assuming you want to use the first photo as profile photo
+                        lastMessage: msg.message,
+                        timestamp: msg.timestamp
+                    };
+                }
+            }
+        });
+
+        // Convert users object to an array
+        const uniqueUsers = Object.values(users);
 
         res.status(200).json(uniqueUsers);
     } catch (error) {
@@ -173,7 +205,6 @@ exports.listChats = async (req, res) => {
         res.status(500).json({ message: 'Failed to list chat users', error: error.message });
     }
 };
-
 
 
 // exports.getActiveChats = async (req, res) => {
