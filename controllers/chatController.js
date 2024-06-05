@@ -4,6 +4,9 @@ const { sendNotification } = require('../utils/socket');
 const User = require('../models/User');
 const mongoose = require('mongoose');
 
+
+
+
 exports.sendMessage = async (req, res) => {
     try {
         const { sender, receiver, message } = req.body;
@@ -41,37 +44,6 @@ exports.sendMessage = async (req, res) => {
     }
 };
 
-
-
-// exports.sendMessage = async (req, res) => {
-//     try {
-//         const { sender, receiver, message } = req.body;
-
-//         // Validate required fields
-//         if (!sender || !receiver || !message) {
-//             return res.status(400).json({ message: 'Sender, receiver, and message are required' });
-//         }
-
-//         // Create a new message
-//         const messageData = { sender, receiver, message };
-
-//         const newMessage = new Message(messageData);
-//         await newMessage.save();
-
-//         // Send message to RabbitMQ queue
-//         // sendMessageToQueue('messageQueue', messageData);
-
-//         // Send notification to the receiver via Socket.IO
-//         // sendNotification(receiver, messageData);
-
-//         // Return success response
-//         res.status(201).json({ message: 'Message sent successfully', data: messageData });
-//     } catch (error) {
-//         console.error('Error sending message:', error);
-//         res.status(500).json({ message: 'Failed to send message', error: error.message });
-//     }
-// };
-
 exports.receiveMessages = async (req, res) => {
     try {
         const receiverId = req.params.receiverId;
@@ -95,24 +67,6 @@ exports.receiveMessages = async (req, res) => {
     } catch (error) {
         console.error('Error receiving messages:', error);
         res.status(500).json({ message: 'Failed to receive messages', error: error.message });
-    }
-};
-
-exports.receiveMessagesFromQueue = async (req, res) => {
-    try {
-        const receiverId = req.params.receiverId;
-
-        // Fetch messages from RabbitMQ for the receiver
-        const messages = await receiveMessagesFromQueue('messageQueue', receiverId);
-
-        // Save the messages to the database
-        const savedMessages = await Message.insertMany(messages);
-
-        // Return the messages as a response
-        res.status(200).json(savedMessages);
-    } catch (error) {
-        console.error('Error receiving messages from queue:', error);
-        res.status(500).json({ message: 'Failed to receive messages from queue', error: error.message });
     }
 };
 
@@ -152,59 +106,135 @@ exports.deleteOldMessages = async () => {
 
 
 
+
 exports.listChats = async (req, res) => {
+    try {
+        const  userId = req.userData._id;
+        console.log('userId',userId);
+    
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+    
+        const userObjectId =new  mongoose.Types.ObjectId(userId);
+    
+        // Aggregate to find the last message for each conversation involving the user
+        const conversations = await Message.aggregate([
+            {
+                $match: {
+                    $or: [
+                        { sender: userObjectId },
+                        { receiver: userObjectId }
+                    ]
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $group: {
+                    _id: {
+                        $cond: [
+                            { $eq: ["$sender", userObjectId] },
+                            "$receiver",
+                            "$sender"
+                        ]
+                    },
+                    lastMessage: { $first: "$$ROOT" }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            {
+                $unwind: '$userDetails'
+            },
+            {
+                $project: {
+                    _id: 0,
+                    userId: '$_id',
+                    firstName: '$userDetails.firstName',
+                    lastName: '$userDetails.lastName',
+                    firstPhoto: { $arrayElemAt: ['$userDetails.photos', 0] },
+                    lastMessage: {
+                        message: '$lastMessage.message',
+                        createdAt: '$lastMessage.createdAt'
+                    }
+                }
+            },
+            {
+                $sort: { 'lastMessage.createdAt': -1 }
+            }
+        ]);
+    
+        res.status(200).json(conversations);
+    } catch (error) {
+        console.error('Error fetching conversations:', error);
+        res.status(500).json({ message: 'Failed to fetch conversations', error: error.message });
+    }
+    
+   
+};
+
+
+
+
+exports.getAllConversations = async (req, res) => {
     try {
         const userId = req.userData._id;
 
-        // Find unique sender-receiver pairs where the user is either the sender or receiver
-        const sentMessages = await Message.find({ sender: userId }).populate('receiver', 'firstName lastName email photos');
-        const receivedMessages = await Message.find({ receiver: userId }).populate('sender', 'firstName lastName email photos');
+        // Find the most recent message sent or received by the user
+        const mostRecentMessage = await Message.findOne({
+            $or: [{ sender: userId }, { receiver: userId }],
+            lastMessage: true // Add this condition to find the last message
+        }).sort({ createdAt: -1 }) // Sort by createdAt in descending order
+        .populate('sender receiver', 'firstName lastName email photos');
 
-        // Combine sent and received messages, then sort by timestamp to get the latest message for each user
-        const allMessages = [...sentMessages, ...receivedMessages];
-        allMessages.sort((a, b) => b.timestamp - a.timestamp); // Assuming there's a 'timestamp' field in the messages
+        console.log(mostRecentMessage,'mostRecentMessage');
 
-        // Extract unique users and their last messages
-        const users = {};
-        allMessages.forEach(msg => {
-            if (msg.receiver._id.toString() === userId.toString()) {
-                const senderId = msg.sender._id.toString();
-                if (!users[senderId]) {
-                    users[senderId] = {
-                        _id: senderId,
-                        firstName: msg.sender.firstName,
-                        lastName: msg.sender.lastName,
-                        email: msg.sender.email,
-                        photo: msg.sender.photos.length > 0 ? msg.sender.photos[0].filename : null, // Assuming you want to use the first photo as profile photo
-                        lastMessage: msg.message,
-                        timestamp: msg.timestamp
-                    };
-                }
-            } else {
-                const receiverId = msg.receiver._id.toString();
-                if (!users[receiverId]) {
-                    users[receiverId] = {
-                        _id: receiverId,
-                        firstName: msg.receiver.firstName,
-                        lastName: msg.receiver.lastName,
-                        email: msg.receiver.email,
-                        photo: msg.receiver.photos.length > 0 ? msg.receiver.photos[0].filename : null, // Assuming you want to use the first photo as profile photo
-                        lastMessage: msg.message,
-                        timestamp: msg.timestamp
-                    };
-                }
-            }
-        });
+        if (!mostRecentMessage) {
+            // If no message is found, return an empty array
+            return res.status(200).json([]);
+        }
 
-        // Convert users object to an array
-        const uniqueUsers = Object.values(users);
+        let otherUser;
+        if (mostRecentMessage.sender._id.toString() === userId.toString()) {
+            // If the user is the sender, get information about the receiver
+            otherUser = {
+                _id: mostRecentMessage.receiver._id.toString(),
+                firstName: mostRecentMessage.receiver.firstName,
+                lastName: mostRecentMessage.receiver.lastName,
+                email: mostRecentMessage.receiver.email,
+                photo: mostRecentMessage.receiver.photos.length > 0 ? mostRecentMessage.receiver.photos[0].filename : null,
+                lastMessage: mostRecentMessage.message,
+                timestamp: mostRecentMessage.createdAt // Use createdAt instead of timestamp
+            };
+        } else {
+            // If the user is the receiver, get information about the sender
+            otherUser = {
+                _id: mostRecentMessage.sender._id.toString(),
+                firstName: mostRecentMessage.sender.firstName,
+                lastName: mostRecentMessage.sender.lastName,
+                email: mostRecentMessage.sender.email,
+                photo: mostRecentMessage.sender.photos.length > 0 ? mostRecentMessage.sender.photos[0].filename : null,
+                lastMessage: mostRecentMessage.message,
+                timestamp: mostRecentMessage.createdAt // Use createdAt instead of timestamp
+            };
+        }
 
-        res.status(200).json(uniqueUsers);
+        res.status(200).json([otherUser]);
     } catch (error) {
         console.error('Error listing chat users:', error);
         res.status(500).json({ message: 'Failed to list chat users', error: error.message });
     }
 };
+
+
 
 
 // exports.getActiveChats = async (req, res) => {

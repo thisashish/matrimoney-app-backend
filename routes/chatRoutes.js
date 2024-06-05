@@ -9,5 +9,6 @@ router.get('/receive-messages/:receiverId',authMiddleware, chatController.receiv
 router.get('/:_id/history',authMiddleware, chatController.getChatHistory);
 router.delete('/delete-old-messages',authMiddleware, chatController.deleteOldMessages);
 router.get('/chat-lists', authMiddleware, chatController.listChats);
+router.get('/conversations/all/:userId',authMiddleware, chatController.getAllConversations);
 
 module.exports = router;
