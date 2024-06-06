@@ -15,7 +15,7 @@ const connectRabbitMQ = async () => {
             vhost:  '/'
         });
 
-        console.log(connection,'connection');
+        
         channel = await connection.createChannel();
         console.log('RabbitMQ connected');
     } catch (error) {

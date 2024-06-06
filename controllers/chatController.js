@@ -28,7 +28,7 @@ exports.sendMessage = async (req, res) => {
         if (receiverUser.online) {
             const receiverSocket = getUserSocket(receiver);
             sendNotification(receiver, messageData);
-            sendMessageToQueue('messageQueue', messageData); // Send message to RabbitMQ
+            // sendMessageToQueue('messageQueue', messageData); 
 
             if (receiverSocket) {
                 // Send the message via WebSocket
@@ -110,18 +110,19 @@ exports.deleteOldMessages = async () => {
 
 
 
-
 exports.listChats = async (req, res) => {
     try {
-        const  userId = req.userData._id;
-        console.log('userId',userId);
-    
-        if (!userId) {
+        const _id = req.userData._id;
+        console.log('_id', _id);
+        const userId = req.userData.userId;
+        
+
+        if (!_id) {
             return res.status(400).json({ message: 'User ID is required' });
         }
-    
-        const userObjectId =new  mongoose.Types.ObjectId(userId);
-    
+
+        const userObjectId = new mongoose.Types.ObjectId(_id);
+
         // Aggregate to find the last message for each conversation involving the user
         const conversations = await Message.aggregate([
             {
@@ -161,11 +162,13 @@ exports.listChats = async (req, res) => {
             {
                 $project: {
                     _id: 0,
-                    userId: '$_id',
+                    conversation_id: '$_id',
+                    userId:'$userDetails.userId',
                     firstName: '$userDetails.firstName',
                     lastName: '$userDetails.lastName',
                     firstPhoto: { $arrayElemAt: ['$userDetails.photos', 0] },
                     lastMessage: {
+                        userId:'$lastMessage.userId',
                         message: '$lastMessage.message',
                         createdAt: '$lastMessage.createdAt'
                     }
@@ -175,15 +178,14 @@ exports.listChats = async (req, res) => {
                 $sort: { 'lastMessage.createdAt': -1 }
             }
         ]);
-    
-        res.status(200).json(conversations);
+
+        res.status(200).json({  conversations });
     } catch (error) {
         console.error('Error fetching conversations:', error);
         res.status(500).json({ message: 'Failed to fetch conversations', error: error.message });
     }
-    
-   
 };
+
 
 
 

@@ -138,7 +138,6 @@ router.put('/super-admin-update-email/:id', isAdmin, async (req, res) => {
 
 router.post('/super-admin-logout', authenticateSuperAdmin, superAdminLogout);
 
-
 // Route to get all users
 router.get('/all-users', superAdminAuthMiddleware, adminsController.getAllUsers);
 
