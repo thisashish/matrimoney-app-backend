@@ -272,7 +272,7 @@ router.put('/update-user-email/:userId', superAdminAuthMiddleware, async (req, r
 router.post('/plans/create', superAdminAuthMiddleware, adminsController.createSubscriptionPlan);
 router.put('/plans/update/:planId', superAdminAuthMiddleware, adminsController.updateSubscriptionPlan);
 router.delete('/plans/delete/:planId', superAdminAuthMiddleware, adminsController.deleteSubscriptionPlan);
-router.get('/plans', superAdminAuthMiddleware, adminsController.listSubscriptionPlans);
+router.get('/plans', adminsController.listSubscriptionPlans);
 
 // Coupon routes
 router.post('/coupons/create', superAdminAuthMiddleware, adminsController.createCoupon);
